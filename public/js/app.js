@@ -237,16 +237,27 @@ async function updateServicePrice() {
     const priceInput = document.getElementById('servicePrice');
     const paymentDescInput = document.getElementById('servicePaymentDescription');
     
-    if (!priceInput || checkedBoxes.length === 0) {
-        if (priceInput) priceInput.value = 0;
+    console.log('🔍 updateServicePrice called, checked:', checkedBoxes.length);
+    
+    if (!priceInput) {
+        console.warn('❌ priceInput not found');
+        return;
+    }
+    
+    if (checkedBoxes.length === 0) {
+        priceInput.value = 0;
+        console.log('✅ No checkboxes checked, price set to 0');
         return;
     }
     
     let suggestedPrice = 0;
     
+    console.log('💰 servicePricing:', window.servicePricing);
+    
     if (typeof window.servicePricing !== 'undefined') {
         for (const cb of checkedBoxes) {
             const priceKey = cb.value;
+            console.log(`🔸 Processing: ${priceKey}`);
             
             // Sprawdź czy to pierwszy miesiąc prowadzenia
             if (priceKey === 'prowadzenie') {
@@ -264,32 +275,42 @@ async function updateServicePrice() {
                             );
                             
                             if (!hasProwadzenie) {
-                                suggestedPrice += window.servicePricing.prowadzenie_pierwszy || 0;
+                                const price = window.servicePricing.prowadzenie_pierwszy || 0;
+                                suggestedPrice += price;
+                                console.log(`✅ Prowadzenie (pierwszy): +${price} zł`);
                                 if (paymentDescInput) {
                                     paymentDescInput.value = 'Pierwszy miesiąc';
                                 }
                             } else {
-                                suggestedPrice += window.servicePricing.prowadzenie || 0;
+                                const price = window.servicePricing.prowadzenie || 0;
+                                suggestedPrice += price;
+                                console.log(`✅ Prowadzenie (kolejny): +${price} zł`);
                                 if (paymentDescInput) {
                                     paymentDescInput.value = '';
                                 }
                             }
                         }
                     } catch (error) {
-                        console.error('Error checking prowadzenie:', error);
-                        // Jeśli błąd, przyjmij że to pierwszy miesiąc (bezpieczniejsze)
-                        suggestedPrice += window.servicePricing.prowadzenie_pierwszy || 0;
+                        console.error('❌ Error checking prowadzenie:', error);
+                        const price = window.servicePricing.prowadzenie_pierwszy || 0;
+                        suggestedPrice += price;
+                        console.log(`⚠️ Prowadzenie (błąd, domyślnie pierwszy): +${price} zł`);
                     }
                 } else {
-                    // Brak clientId - prawdopodobnie błąd, nie dodawaj ceny
-                    console.warn('Brak clientId - nie można określić ceny prowadzenia');
+                    // Brak clientId - dodaj pierwszy miesiąc
+                    const price = window.servicePricing.prowadzenie_pierwszy || 0;
+                    suggestedPrice += price;
+                    console.log(`⚠️ Prowadzenie (brak clientId, domyślnie pierwszy): +${price} zł`);
                 }
             } else {
-                suggestedPrice += window.servicePricing[priceKey] || 0;
+                const price = window.servicePricing[priceKey] || 0;
+                suggestedPrice += price;
+                console.log(`✅ ${priceKey}: +${price} zł`);
             }
         }
     }
     
+    console.log('💰 Całkowita cena:', suggestedPrice);
     priceInput.value = suggestedPrice;
 }
 
