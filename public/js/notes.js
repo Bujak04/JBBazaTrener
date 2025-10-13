@@ -169,6 +169,8 @@ function populateNoteClientSelect() {
     
     select.innerHTML = '<option value="">Ogólna notatka</option>';
     
+    const allClients = window.allClients || [];
+    
     allClients
         .sort((a, b) => {
             const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();

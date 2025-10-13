@@ -54,6 +54,8 @@ function updateMeasurementClientSelect() {
     
     select.innerHTML = '<option value="">Wybierz klienta...</option>';
     
+    const allClients = window.allClients || [];
+    
     allClients
         .sort((a, b) => {
             const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();

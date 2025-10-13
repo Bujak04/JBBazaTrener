@@ -46,8 +46,15 @@ function initializeTabs() {
     console.log('Initializing tabs, found buttons:', tabButtons.length);
     
     tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const tabName = button.dataset.tab;
+        // Usuń stare event listenery klonując element
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        newButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const tabName = newButton.dataset.tab;
             
             console.log('Tab clicked:', tabName);
             
@@ -56,7 +63,7 @@ function initializeTabs() {
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
             // Dodaj active do wybranej zakładki
-            button.classList.add('active');
+            newButton.classList.add('active');
             const targetTab = document.getElementById(`${tabName}Tab`);
             
             if (targetTab) {
@@ -67,17 +74,17 @@ function initializeTabs() {
             }
             
             // Odśwież dane w zakładce
-            if (tabName === 'home' && typeof updateDashboard === 'function') {
-                updateDashboard();
+            if (tabName === 'home' && typeof window.updateDashboard === 'function') {
+                window.updateDashboard();
             }
-            if (tabName === 'clients' && typeof renderClientsList === 'function') {
-                renderClientsList();
+            if (tabName === 'clients' && typeof window.renderClientsList === 'function') {
+                window.renderClientsList();
             }
-            if (tabName === 'services' && typeof updateServicesTab === 'function') {
-                updateServicesTab();
+            if (tabName === 'services' && typeof window.updateServicesTab === 'function') {
+                window.updateServicesTab();
             }
-            if (tabName === 'notes' && typeof renderNotesList === 'function') {
-                renderNotesList();
+            if (tabName === 'notes' && typeof window.renderNotesList === 'function') {
+                window.renderNotesList();
             }
         });
     });

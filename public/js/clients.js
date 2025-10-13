@@ -129,10 +129,14 @@ function renderClientsList() {
     
     if (!container) return;
     
+    // Użyj window.allClients zamiast lokalnego
+    const allClients = window.allClients || [];
+    
     // Filtrowanie klientów
     let filteredClients = allClients.filter(client => {
         const matchesSearch = 
             client.firstName.toLowerCase().includes(searchTerm) ||
+            client.lastName.toLowerCase().includes(searchTerm);
             client.lastName.toLowerCase().includes(searchTerm);
         
         const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
