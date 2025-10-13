@@ -668,7 +668,7 @@ async function deleteClientMeasurement(clientId, measurementIndex) {
         
         await clientRef.update({
             measurements: measurements,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            updatedAt: new Date()
         });
         
         showToast('Pomiar usunięty', 'success');

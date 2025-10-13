@@ -57,8 +57,9 @@
         <!-- Nawigacja -->
         <nav class="nav-tabs">
             <button class="tab-btn active" data-tab="home">Strona Główna</button>
-            <button class="tab-btn" data-tab="clients">Klienci</button>
+            <button class="tab-btn" data-tab="clients">Podopieczni</button>
             <button class="tab-btn" data-tab="services">Usługi</button>
+            <button class="tab-btn" data-tab="finances">Finanse</button>
             <button class="tab-btn" data-tab="notes">Notatki</button>
             <button class="tab-btn" data-tab="measurements">Pomiary</button>
         </nav>
@@ -77,7 +78,7 @@
                             <div class="stat-icon">👥</div>
                             <div class="stat-info">
                                 <h3 id="totalClients">0</h3>
-                                <p>Wszyscy klienci</p>
+                                <p>Wszyscy podopieczni</p>
                             </div>
                         </div>
                         <div class="stat-card active">
@@ -245,6 +246,57 @@
                     <div id="measurementsList" class="measurements-list">
                         <!-- Dynamicznie generowane -->
                     </div>
+                </div>
+            </div>
+
+            <!-- FINANSE -->
+            <div id="finances-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>💰 Finanse</h2>
+                    <button id="addPaymentBtn" class="btn-primary">+ Dodaj płatność</button>
+                </div>
+
+                <!-- Podsumowanie finansowe -->
+                <div class="stats-grid" style="margin-bottom: 30px;">
+                    <div class="stat-card">
+                        <div class="stat-icon">💵</div>
+                        <div class="stat-info">
+                            <h3 id="totalRevenue">0 zł</h3>
+                            <p>Łączny przychód</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏳</div>
+                        <div class="stat-info">
+                            <h3 id="pendingPayments">0 zł</h3>
+                            <p>Oczekujące płatności</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <h3 id="paidThisMonth">0 zł</h3>
+                            <p>Opłacone w tym miesiącu</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtry -->
+                <div class="filters" style="margin-bottom: 20px;">
+                    <select id="paymentStatusFilter">
+                        <option value="all">Wszystkie statusy</option>
+                        <option value="oplacone">Opłacone</option>
+                        <option value="oczekujace">Oczekujące</option>
+                        <option value="zaleglosc">Zaległość</option>
+                    </select>
+                    <select id="paymentClientFilter">
+                        <option value="all">Wszyscy podopieczni</option>
+                    </select>
+                </div>
+
+                <!-- Historia płatności -->
+                <div id="paymentsList" class="payments-list">
+                    <!-- Dynamicznie generowane -->
                 </div>
             </div>
 
@@ -604,6 +656,67 @@
         </div>
     </div>
 
+    <!-- Modal - Dodaj płatność -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dodaj płatność</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentForm">
+                    <div class="form-group">
+                        <label>Podopieczny *</label>
+                        <select id="paymentClientSelect" required>
+                            <option value="">Wybierz podopiecznego...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Typ usługi *</label>
+                        <select id="paymentServiceType" required>
+                            <option value="">Wybierz usługę...</option>
+                            <option value="dieta">🥗 Dieta</option>
+                            <option value="plan_treningowy">💪 Plan treningowy</option>
+                            <option value="prowadzenie">📊 Prowadzenie</option>
+                            <option value="wspolpraca_prywatna">🤝 Współpraca prywatna</option>
+                            <option value="inne">📋 Inne</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Kwota (PLN) *</label>
+                        <input type="number" id="paymentAmount" step="0.01" min="0" required placeholder="np. 500.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Data płatności *</label>
+                        <input type="date" id="paymentDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status *</label>
+                        <select id="paymentStatus" required>
+                            <option value="oplacone">✅ Opłacone</option>
+                            <option value="oczekujace">⏳ Oczekujące</option>
+                            <option value="zaleglosc">❌ Zaległość</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notatka</label>
+                        <textarea id="paymentNotes" rows="3" placeholder="Dodatkowe informacje..."></textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary close-btn">Anuluj</button>
+                        <button type="submit" class="btn-primary">Dodaj płatność</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Loading spinner -->
     <!-- Modal - Powiadomienia -->
     <div id="notificationsModal" class="modal">
@@ -642,6 +755,7 @@
     <script src="js/auth.js"></script>
     <script src="js/clients.js"></script>
     <script src="js/services.js"></script>
+    <script src="js/finances.js"></script>
     <script src="js/notes.js"></script>
     <script src="js/measurements.js"></script>
     <script src="js/charts.js"></script>

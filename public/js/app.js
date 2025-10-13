@@ -67,7 +67,7 @@ function initializeTabs() {
             
             // Dodaj active do wybranej zakładki
             this.classList.add('active');
-            const targetTab = document.getElementById(`${tabName}Tab`);
+            const targetTab = document.getElementById(`${tabName}-tab`);
             
             if (targetTab) {
                 targetTab.classList.add('active');
@@ -94,6 +94,12 @@ function initializeTabs() {
                     console.log('Calling updateServicesTab...');
                     if (typeof window.updateServicesTab === 'function') {
                         window.updateServicesTab();
+                    }
+                }
+                if (tabName === 'finances') {
+                    console.log('Calling loadPayments...');
+                    if (typeof window.loadPayments === 'function') {
+                        window.loadPayments();
                     }
                 }
                 if (tabName === 'notes') {
@@ -145,6 +151,14 @@ function initializeModals() {
     document.getElementById('addNoteBtn').addEventListener('click', () => {
         openNoteModal();
     });
+    
+    // Przycisk dodaj płatność
+    const addPaymentBtn = document.getElementById('addPaymentBtn');
+    if (addPaymentBtn) {
+        addPaymentBtn.addEventListener('click', () => {
+            openPaymentModal();
+        });
+    }
 }
 
 // Inicjalizacja formularzy
@@ -171,6 +185,12 @@ function initializeForms() {
     const serviceForm = document.getElementById('serviceForm');
     if (serviceForm) {
         serviceForm.addEventListener('submit', handleServiceSubmit);
+    }
+    
+    // Formularz płatności
+    const paymentForm = document.getElementById('paymentForm');
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', handlePaymentSubmit);
     }
     
     // Formularz upload pliku - pomijamy jeśli nie istnieje (Storage wyłączony)

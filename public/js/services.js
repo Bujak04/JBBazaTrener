@@ -165,7 +165,7 @@ async function handleServiceSubmit(e) {
         await clientRef.update({
             services: updatedServices,
             status: newStatus,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            updatedAt: new Date()
         });
         
         showToast('Usługi dodane pomyślnie', 'success');
@@ -238,7 +238,7 @@ async function extendService(clientId, serviceIndex) {
         await clientRef.update({
             services: services,
             status: newStatus,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            updatedAt: new Date()
         });
         
         showToast(`Prowadzenie przedłużone o ${days} dni`, 'success');
@@ -305,7 +305,7 @@ async function endService(clientId, serviceIndex) {
         await clientRef.update({
             services: services,
             status: newStatus,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            updatedAt: new Date() // Zmieniono z serverTimestamp() na new Date()
         });
         
         showToast('Prowadzenie zakończone', 'success');
@@ -358,7 +358,7 @@ async function deleteService(clientId, serviceIndex) {
         await clientRef.update({
             services: services,
             status: newStatus,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            updatedAt: new Date()
         });
         
         showToast('Usługa została usunięta', 'success');
