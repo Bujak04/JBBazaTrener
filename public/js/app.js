@@ -124,6 +124,9 @@ function initializeTabs() {
 
 // System modali
 function initializeModals() {
+    // Inicjalizuj formatowanie dat
+    initializeDateFormatting();
+    
     // Zamykanie modali przez X
     document.querySelectorAll('.close-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -217,97 +220,105 @@ function initializeForms() {
     // Checkbox usług - dynamiczna zmiana etykiet i pól
     const serviceCheckboxes = document.querySelectorAll('input[name="serviceType"]');
     serviceCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', async () => {
-            const checkedBoxes = Array.from(serviceCheckboxes).filter(cb => cb.checked);
-            const dietaChecked = checkedBoxes.find(cb => cb.value === 'dieta');
-            const planChecked = checkedBoxes.find(cb => cb.value === 'plan_treningowy');
-            const prowadzenieChecked = checkedBoxes.find(cb => cb.value === 'prowadzenie');
-            const prywatnaChecked = checkedBoxes.find(cb => cb.value === 'wspolpraca_prywatna');
-            
-            const startDateLabel = document.getElementById('startDateLabel');
-            const endDateLabel = document.getElementById('endDateLabel');
-            const endDateGroup = document.getElementById('endDateGroup');
-            const endDateInput = document.getElementById('serviceEndDate');
-            const priceInput = document.getElementById('servicePrice');
-            const paymentDescInput = document.getElementById('servicePaymentDescription');
-            
-            // Oblicz sugerowaną cenę na podstawie zaznaczonych usług
-            let suggestedPrice = 0;
-            let isFirstProwadzenie = false;
-            
-            if (typeof window.servicePricing !== 'undefined') {
-                for (const cb of checkedBoxes) {
-                    const priceKey = cb.value;
-                    
-                    // Sprawdź czy to pierwszy miesiąc prowadzenia
-                    if (priceKey === 'prowadzenie') {
-                        const form = document.getElementById('serviceForm');
-                        const clientId = form?.dataset?.clientId;
-                        
-                        if (clientId) {
-                            try {
-                                const clientDoc = await window.db.collection('clients').doc(clientId).get();
-                                if (clientDoc.exists) {
-                                    const clientData = clientDoc.data();
-                                    const hasProwadzenie = (clientData.services || []).some(s => 
-                                        s.type === 'prowadzenie' && 
-                                        (s.status === 'aktywny' || s.status === 'wygasajacy')
-                                    );
-                                    
-                                    if (!hasProwadzenie) {
-                                        isFirstProwadzenie = true;
-                                        suggestedPrice += window.servicePricing.prowadzenie_pierwszy || 0;
-                                        if (paymentDescInput) {
-                                            paymentDescInput.value = 'Pierwszy miesiąc';
-                                        }
-                                    } else {
-                                        suggestedPrice += window.servicePricing.prowadzenie || 0;
-                                    }
-                                }
-                            } catch (error) {
-                                console.error('Error checking prowadzenie:', error);
-                                suggestedPrice += window.servicePricing.prowadzenie || 0;
-                            }
-                        } else {
-                            suggestedPrice += window.servicePricing.prowadzenie || 0;
-                        }
-                    } else {
-                        suggestedPrice += window.servicePricing[priceKey] || 0;
-                    }
-                }
-            }
-            
-            // Ustaw sugerowaną cenę
-            if (priceInput && checkedBoxes.length > 0) {
-                priceInput.value = suggestedPrice;
-            }
-            
-            // Dla diety i planu treningowego - to jest "data kupna" i nie ma końca
-            if ((dietaChecked || planChecked) && !prowadzenieChecked && !prywatnaChecked) {
-                startDateLabel.textContent = 'Data kupna *';
-                endDateGroup.style.display = 'none';
-                endDateInput.removeAttribute('required');
-            }
-            // Dla prowadzenia - ma datę rozpoczęcia i zakończenia
-            else if (prowadzenieChecked && !dietaChecked && !planChecked && !prywatnaChecked) {
-                startDateLabel.textContent = 'Data rozpoczęcia *';
-                endDateGroup.style.display = 'none';
-                endDateInput.removeAttribute('required');
-            }
-            // Dla współpracy prywatnej - pokaż pole ceny
-            else if (prywatnaChecked) {
-                startDateLabel.textContent = 'Data rozpoczęcia *';
-                endDateGroup.style.display = 'none';
-                endDateInput.removeAttribute('required');
-            }
-            // Inne kombinacje
-            else {
-                startDateLabel.textContent = 'Data rozpoczęcia *';
-                endDateGroup.style.display = 'none';
-                endDateInput.removeAttribute('required');
-            }
+        checkbox.addEventListener('change', () => {
+            updateServicePrice();
+            updateServiceLabels();
         });
     });
+}
+
+// Funkcja do aktualizacji ceny usługi
+async function updateServicePrice() {
+    const serviceCheckboxes = document.querySelectorAll('input[name="serviceType"]');
+    const checkedBoxes = Array.from(serviceCheckboxes).filter(cb => cb.checked);
+    const priceInput = document.getElementById('servicePrice');
+    const paymentDescInput = document.getElementById('servicePaymentDescription');
+    
+    if (!priceInput || checkedBoxes.length === 0) return;
+    
+    let suggestedPrice = 0;
+    
+    if (typeof window.servicePricing !== 'undefined') {
+        for (const cb of checkedBoxes) {
+            const priceKey = cb.value;
+            
+            // Sprawdź czy to pierwszy miesiąc prowadzenia
+            if (priceKey === 'prowadzenie') {
+                const form = document.getElementById('serviceForm');
+                const clientId = form?.dataset?.clientId;
+                
+                if (clientId) {
+                    try {
+                        const clientDoc = await window.db.collection('clients').doc(clientId).get();
+                        if (clientDoc.exists) {
+                            const clientData = clientDoc.data();
+                            const hasProwadzenie = (clientData.services || []).some(s => 
+                                s.type === 'prowadzenie' && 
+                                (s.status === 'aktywny' || s.status === 'wygasajacy')
+                            );
+                            
+                            if (!hasProwadzenie) {
+                                suggestedPrice += window.servicePricing.prowadzenie_pierwszy || 0;
+                                if (paymentDescInput) {
+                                    paymentDescInput.value = 'Pierwszy miesiąc';
+                                }
+                            } else {
+                                suggestedPrice += window.servicePricing.prowadzenie || 0;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error checking prowadzenie:', error);
+                        suggestedPrice += window.servicePricing.prowadzenie || 0;
+                    }
+                } else {
+                    suggestedPrice += window.servicePricing.prowadzenie || 0;
+                }
+            } else {
+                suggestedPrice += window.servicePricing[priceKey] || 0;
+            }
+        }
+    }
+    
+    priceInput.value = suggestedPrice;
+}
+
+// Funkcja do aktualizacji etykiet usługi
+function updateServiceLabels() {
+    const serviceCheckboxes = document.querySelectorAll('input[name="serviceType"]');
+    const checkedBoxes = Array.from(serviceCheckboxes).filter(cb => cb.checked);
+    const dietaChecked = checkedBoxes.find(cb => cb.value === 'dieta');
+    const planChecked = checkedBoxes.find(cb => cb.value === 'plan_treningowy');
+    const prowadzenieChecked = checkedBoxes.find(cb => cb.value === 'prowadzenie');
+    const prywatnaChecked = checkedBoxes.find(cb => cb.value === 'wspolpraca_prywatna');
+    
+    const startDateLabel = document.getElementById('startDateLabel');
+    const endDateGroup = document.getElementById('endDateGroup');
+    const endDateInput = document.getElementById('serviceEndDate');
+    
+    // Dla diety i planu treningowego - to jest "data kupna" i nie ma końca
+    if ((dietaChecked || planChecked) && !prowadzenieChecked && !prywatnaChecked) {
+        startDateLabel.textContent = 'Data kupna *';
+        endDateGroup.style.display = 'none';
+        endDateInput.removeAttribute('required');
+    }
+    // Dla prowadzenia - ma datę rozpoczęcia i zakończenia
+    else if (prowadzenieChecked && !dietaChecked && !planChecked && !prywatnaChecked) {
+        startDateLabel.textContent = 'Data rozpoczęcia *';
+        endDateGroup.style.display = 'none';
+        endDateInput.removeAttribute('required');
+    }
+    // Dla współpracy prywatnej
+    else if (prywatnaChecked) {
+        startDateLabel.textContent = 'Data rozpoczęcia *';
+        endDateGroup.style.display = 'none';
+        endDateInput.removeAttribute('required');
+    }
+    // Inne kombinacje
+    else {
+        startDateLabel.textContent = 'Data rozpoczęcia *';
+        endDateGroup.style.display = 'none';
+        endDateInput.removeAttribute('required');
+    }
 }
 
 // Inicjalizacja filtrów
@@ -433,5 +444,48 @@ function openNoteModal(clientId = null) {
     
     modal.classList.add('active');
 }
+
+// Obsługa formatowania dat DD.MM.RRRR
+function initializeDateFormatting() {
+    const startDateDisplay = document.getElementById('serviceStartDateDisplay');
+    const startDateHidden = document.getElementById('serviceStartDate');
+    
+    if (startDateDisplay && startDateHidden) {
+        startDateDisplay.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.length >= 2) {
+                value = value.slice(0, 2) + '.' + value.slice(2);
+            }
+            if (value.length >= 5) {
+                value = value.slice(0, 5) + '.' + value.slice(5, 9);
+            }
+            
+            e.target.value = value;
+            
+            if (value.length === 10) {
+                const parts = value.split('.');
+                if (parts.length === 3) {
+                    const day = parts[0];
+                    const month = parts[1];
+                    const year = parts[2];
+                    startDateHidden.value = `${year}-${month}-${day}`;
+                }
+            }
+        });
+        
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        startDateDisplay.value = `${dd}.${mm}.${yyyy}`;
+        startDateHidden.value = `${yyyy}-${mm}-${dd}`;
+    }
+}
+
+// Eksporty globalne
+window.updateServicePrice = updateServicePrice;
+window.updateServiceLabels = updateServiceLabels;
+window.initializeDateFormatting = initializeDateFormatting;
 
 console.log('? App.js loaded');
