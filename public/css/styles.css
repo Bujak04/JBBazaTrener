@@ -1353,3 +1353,71 @@ body {
         min-width: auto;
     }
 }
+/* ============================================
+   CENNIK USUG
+   ============================================ */
+.services-pricing {
+    background: var(--bg-card);
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.pricing-card {
+    background: var(--bg-dark);
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s;
+}
+
+.pricing-card:hover {
+    border-color: var(--primary-green);
+    transform: translateY(-2px);
+}
+
+.pricing-card h4 {
+    color: var(--primary-green);
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.pricing-card small {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-dark-gray);
+    font-size: 12px;
+}
+
+.price-input {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-white);
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.price-input:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 3px rgba(14, 209, 69, 0.1);
+}
+
+.form-hint {
+    display: block;
+    margin-top: 5px;
+    color: var(--text-dark-gray);
+    font-size: 12px;
+}

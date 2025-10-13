@@ -1,5 +1,70 @@
 // This file manages service-related functionalities, including tracking active, expiring, and unpaid services.
 
+// Domyślny cennik usług (przechowywany w Firebase)
+let servicePricing = {
+    dieta: 300,
+    plan_treningowy: 250,
+    prowadzenie: 400,
+    wspolpraca_prywatna: 500
+};
+
+// Załaduj cennik z Firebase
+async function loadPricing() {
+    try {
+        const pricingDoc = await window.db.collection('settings').doc('pricing').get();
+        if (pricingDoc.exists) {
+            servicePricing = pricingDoc.data();
+        }
+        updatePricingInputs();
+    } catch (error) {
+        console.error('Error loading pricing:', error);
+    }
+}
+
+// Zapisz cennik do Firebase
+async function savePricing() {
+    try {
+        showLoading(true);
+        
+        const priceDieta = parseFloat(document.getElementById('priceDieta').value) || 0;
+        const pricePlan = parseFloat(document.getElementById('pricePlan').value) || 0;
+        const priceProwadzenie = parseFloat(document.getElementById('priceProwadzenie').value) || 0;
+        const priceWspolpraca = parseFloat(document.getElementById('priceWspolpraca').value) || 0;
+        
+        servicePricing = {
+            dieta: priceDieta,
+            plan_treningowy: pricePlan,
+            prowadzenie: priceProwadzenie,
+            wspolpraca_prywatna: priceWspolpraca
+        };
+        
+        await window.db.collection('settings').doc('pricing').set(servicePricing);
+        
+        showToast('Cennik zapisany pomyślnie', 'success');
+    } catch (error) {
+        console.error('Error saving pricing:', error);
+        showToast('Błąd zapisywania cennika: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Aktualizuj pola cennika w UI
+function updatePricingInputs() {
+    const inputs = {
+        priceDieta: servicePricing.dieta || 0,
+        pricePlan: servicePricing.plan_treningowy || 0,
+        priceProwadzenie: servicePricing.prowadzenie || 0,
+        priceWspolpraca: servicePricing.wspolpraca_prywatna || 0
+    };
+    
+    Object.keys(inputs).forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.value = inputs[id];
+        }
+    });
+}
 
 
 // Function to get all services
@@ -68,6 +133,18 @@ function openServiceModal(clientId) {
         startDateInput.value = today;
     }
     
+    // Ustaw domyślną cenę na 0
+    const priceInput = document.getElementById('servicePrice');
+    if (priceInput) {
+        priceInput.value = 0;
+    }
+    
+    // Resetuj rabat
+    const discountInput = document.getElementById('serviceDiscount');
+    if (discountInput) {
+        discountInput.value = 0;
+    }
+    
     modal.classList.add('active');
 }
 
@@ -95,8 +172,10 @@ async function handleServiceSubmit(e) {
     const statusSelect = document.getElementById('serviceStatus');
     const notesTextarea = document.getElementById('serviceNotes');
     const priceInput = document.getElementById('servicePrice');
+    const discountInput = document.getElementById('serviceDiscount');
+    const paymentDescInput = document.getElementById('servicePaymentDescription');
     
-    if (!startDateInput || !statusSelect) {
+    if (!startDateInput || !statusSelect || !priceInput) {
         showToast('Błąd: brak pól formularza', 'error');
         return;
     }
@@ -105,7 +184,16 @@ async function handleServiceSubmit(e) {
     const endDate = endDateInput ? endDateInput.value : null;
     const status = statusSelect.value;
     const notes = notesTextarea ? notesTextarea.value.trim() : '';
-    const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+    const price = parseFloat(priceInput.value) || 0;
+    const discount = parseFloat(discountInput.value) || 0;
+    const paymentDescription = paymentDescInput ? paymentDescInput.value.trim() : '';
+    
+    const finalPrice = Math.max(0, price - discount);
+    
+    if (finalPrice === 0) {
+        const confirm = window.confirm('Cena usługi wynosi 0 PLN. Czy na pewno chcesz kontynuować?');
+        if (!confirm) return;
+    }
     
     showLoading(true);
     
@@ -128,12 +216,10 @@ async function handleServiceSubmit(e) {
                 startDate: firebase.firestore.Timestamp.fromDate(new Date(startDate)),
                 status: status,
                 notes: notes,
-                payment: {
-                    isPaid: false,
-                    amount: price || 0,
-                    dueDate: null,
-                    paidDate: null
-                },
+                price: finalPrice,
+                originalPrice: price,
+                discount: discount,
+                paymentDescription: paymentDescription,
                 createdAt: firebase.firestore.Timestamp.fromDate(now)
             };
             
@@ -148,10 +234,9 @@ async function handleServiceSubmit(e) {
                 service.endDate = null;
                 service.purchaseDate = firebase.firestore.Timestamp.fromDate(new Date(startDate));
             }
-            // Współpraca prywatna - bez daty końca, z ceną
+            // Współpraca prywatna - bez daty końca
             else if (type === 'wspolpraca_prywatna') {
                 service.endDate = null;
-                service.price = price;
             }
             
             return service;
@@ -168,7 +253,45 @@ async function handleServiceSubmit(e) {
             updatedAt: new Date()
         });
         
-        showToast('Usługi dodane pomyślnie', 'success');
+        // Automatycznie utwórz płatność dla każdej usługi
+        const clientName = `${clientData.firstName} ${clientData.lastName}`;
+        
+        for (const service of newServices) {
+            const serviceTypeNames = {
+                'dieta': 'Dieta',
+                'plan_treningowy': 'Plan treningowy',
+                'prowadzenie': 'Prowadzenie',
+                'wspolpraca_prywatna': 'Współpraca prywatna'
+            };
+            
+            const serviceTypeName = serviceTypeNames[service.type] || service.type;
+            
+            let paymentNotes = serviceTypeName;
+            if (paymentDescription) {
+                paymentNotes += ` - ${paymentDescription}`;
+            }
+            if (discount > 0) {
+                paymentNotes += ` (Rabat: ${discount} PLN)`;
+            }
+            if (service.notes) {
+                paymentNotes += `\n${service.notes}`;
+            }
+            
+            const paymentData = {
+                clientId: clientId,
+                clientName: clientName,
+                serviceType: service.type,
+                amount: finalPrice,
+                date: firebase.firestore.Timestamp.fromDate(new Date(startDate)),
+                status: status === 'aktywny' ? 'oplacone' : 'oczekujace',
+                notes: paymentNotes,
+                createdAt: firebase.firestore.Timestamp.fromDate(now)
+            };
+            
+            await window.db.collection('payments').add(paymentData);
+        }
+        
+        showToast(`Dodano ${newServices.length} usług i utworzono płatności`, 'success');
         
         const modal = document.getElementById('serviceModal');
         if (modal) {
@@ -534,5 +657,8 @@ window.extendService = extendService;
 window.endService = endService;
 window.deleteService = deleteService;
 window.handleServiceSubmit = handleServiceSubmit;
+window.loadPricing = loadPricing;
+window.savePricing = savePricing;
+window.servicePricing = servicePricing;
 
 console.log('Services.js loaded');

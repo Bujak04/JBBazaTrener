@@ -6,6 +6,11 @@ let currentClient = null;
 function initializeApp() {
     console.log('Initializing app...');
     
+    // Załaduj cennik usług
+    if (typeof window.loadPricing === 'function') {
+        window.loadPricing();
+    }
+    
     // Nasłuchiwanie na zmiany w klientach
     window.db.collection('clients').onSnapshot((snapshot) => {
         allClients = [];
@@ -159,6 +164,16 @@ function initializeModals() {
             openPaymentModal();
         });
     }
+    
+    // Przycisk zapisz cennik
+    const savePricingBtn = document.getElementById('savePricingBtn');
+    if (savePricingBtn) {
+        savePricingBtn.addEventListener('click', () => {
+            if (typeof window.savePricing === 'function') {
+                window.savePricing();
+            }
+        });
+    }
 }
 
 // Inicjalizacja formularzy
@@ -203,44 +218,55 @@ function initializeForms() {
     const serviceCheckboxes = document.querySelectorAll('input[name="serviceType"]');
     serviceCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', () => {
-            const dietaChecked = Array.from(serviceCheckboxes).find(cb => cb.value === 'dieta' && cb.checked);
-            const planChecked = Array.from(serviceCheckboxes).find(cb => cb.value === 'plan_treningowy' && cb.checked);
-            const prowadzenieChecked = Array.from(serviceCheckboxes).find(cb => cb.value === 'prowadzenie' && cb.checked);
-            const prywatnaChecked = Array.from(serviceCheckboxes).find(cb => cb.value === 'wspolpraca_prywatna' && cb.checked);
+            const checkedBoxes = Array.from(serviceCheckboxes).filter(cb => cb.checked);
+            const dietaChecked = checkedBoxes.find(cb => cb.value === 'dieta');
+            const planChecked = checkedBoxes.find(cb => cb.value === 'plan_treningowy');
+            const prowadzenieChecked = checkedBoxes.find(cb => cb.value === 'prowadzenie');
+            const prywatnaChecked = checkedBoxes.find(cb => cb.value === 'wspolpraca_prywatna');
             
             const startDateLabel = document.getElementById('startDateLabel');
             const endDateLabel = document.getElementById('endDateLabel');
             const endDateGroup = document.getElementById('endDateGroup');
             const endDateInput = document.getElementById('serviceEndDate');
-            const priceGroup = document.getElementById('priceGroup');
+            const priceInput = document.getElementById('servicePrice');
+            
+            // Oblicz sugerowaną cenę na podstawie zaznaczonych usług
+            let suggestedPrice = 0;
+            if (typeof window.servicePricing !== 'undefined') {
+                checkedBoxes.forEach(cb => {
+                    const priceKey = cb.value;
+                    suggestedPrice += window.servicePricing[priceKey] || 0;
+                });
+            }
+            
+            // Ustaw sugerowaną cenę
+            if (priceInput && checkedBoxes.length > 0) {
+                priceInput.value = suggestedPrice;
+            }
             
             // Dla diety i planu treningowego - to jest "data kupna" i nie ma końca
             if ((dietaChecked || planChecked) && !prowadzenieChecked && !prywatnaChecked) {
                 startDateLabel.textContent = 'Data kupna *';
                 endDateGroup.style.display = 'none';
                 endDateInput.removeAttribute('required');
-                priceGroup.style.display = 'none';
             }
             // Dla prowadzenia - ma datę rozpoczęcia i zakończenia
             else if (prowadzenieChecked && !dietaChecked && !planChecked && !prywatnaChecked) {
                 startDateLabel.textContent = 'Data rozpoczęcia *';
                 endDateGroup.style.display = 'none';
                 endDateInput.removeAttribute('required');
-                priceGroup.style.display = 'none';
             }
             // Dla współpracy prywatnej - pokaż pole ceny
             else if (prywatnaChecked) {
                 startDateLabel.textContent = 'Data rozpoczęcia *';
                 endDateGroup.style.display = 'none';
                 endDateInput.removeAttribute('required');
-                priceGroup.style.display = 'block';
             }
             // Inne kombinacje
             else {
                 startDateLabel.textContent = 'Data rozpoczęcia *';
                 endDateGroup.style.display = 'none';
                 endDateInput.removeAttribute('required');
-                priceGroup.style.display = 'none';
             }
         });
     });

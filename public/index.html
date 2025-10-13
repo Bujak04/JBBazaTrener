@@ -183,6 +183,33 @@
             <div id="services-tab" class="tab-content">
                 <h2>Zarządzanie usługami</h2>
                 
+                <!-- Cennik usług -->
+                <div class="services-pricing">
+                    <div class="section-header">
+                        <h3>💰 Cennik usług</h3>
+                        <button id="savePricingBtn" class="btn-primary">Zapisz cennik</button>
+                    </div>
+                    <div class="pricing-grid">
+                        <div class="pricing-card">
+                            <h4>🥗 Dieta</h4>
+                            <input type="number" id="priceDieta" class="price-input" step="0.01" min="0" placeholder="Cena w PLN">
+                        </div>
+                        <div class="pricing-card">
+                            <h4>💪 Plan treningowy</h4>
+                            <input type="number" id="pricePlan" class="price-input" step="0.01" min="0" placeholder="Cena w PLN">
+                        </div>
+                        <div class="pricing-card">
+                            <h4>📊 Prowadzenie (miesięcznie)</h4>
+                            <input type="number" id="priceProwadzenie" class="price-input" step="0.01" min="0" placeholder="Cena w PLN">
+                        </div>
+                        <div class="pricing-card">
+                            <h4>🤝 Współpraca prywatna</h4>
+                            <input type="number" id="priceWspolpraca" class="price-input" step="0.01" min="0" placeholder="Cena domyślna">
+                            <small>Można zmienić przy dodawaniu usługi</small>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="services-overview">
                     <div class="service-category">
                         <h3>Prowadzenie - Status</h3>
@@ -460,9 +487,22 @@
                         <input type="date" id="serviceEndDate">
                     </div>
 
-                    <div class="form-group" id="priceGroup" style="display: none;">
-                        <label>Cena (PLN)</label>
-                        <input type="number" id="servicePrice" step="0.01" min="0" placeholder="np. 500.00">
+                    <div class="form-group" id="priceGroup">
+                        <label>Cena (PLN) *</label>
+                        <input type="number" id="servicePrice" step="0.01" min="0" placeholder="np. 500.00" required>
+                        <small class="form-hint">Sugerowana cena zostanie automatycznie wypełniona</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Rabat (PLN)</label>
+                        <input type="number" id="serviceDiscount" step="0.01" min="0" value="0" placeholder="np. 50.00">
+                        <small class="form-hint">Zostanie odjęty od ceny</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Opis płatności</label>
+                        <input type="text" id="servicePaymentDescription" placeholder="np. Pierwszy miesiąc, Rabat powitalny">
+                        <small class="form-hint">Opcjonalny opis do wyjaśnienia ceny</small>
                     </div>
 
                     <div class="form-group">
