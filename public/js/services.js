@@ -9,12 +9,16 @@ let servicePricing = {
     wspolpraca_prywatna: 500
 };
 
+// Eksportuj do window
+window.servicePricing = servicePricing;
+
 // Załaduj cennik z Firebase
 async function loadPricing() {
     try {
         const pricingDoc = await window.db.collection('settings').doc('pricing').get();
         if (pricingDoc.exists) {
             servicePricing = pricingDoc.data();
+            window.servicePricing = servicePricing; // Aktualizuj window.servicePricing
         }
         updatePricingInputs();
     } catch (error) {
@@ -40,6 +44,8 @@ async function savePricing() {
             prowadzenie_pierwszy: priceProwadzeniePierwszy,
             wspolpraca_prywatna: priceWspolpraca
         };
+        
+        window.servicePricing = servicePricing; // Aktualizuj window.servicePricing
         
         await window.db.collection('settings').doc('pricing').set(servicePricing);
         
@@ -147,6 +153,11 @@ function openServiceModal(clientId) {
     const discountInput = document.getElementById('serviceDiscount');
     if (discountInput) {
         discountInput.value = 0;
+    }
+    
+    // Odśwież formatowanie daty
+    if (typeof window.initializeDateFormatting === 'function') {
+        setTimeout(() => window.initializeDateFormatting(), 100);
     }
     
     modal.classList.add('active');
