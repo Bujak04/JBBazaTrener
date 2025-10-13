@@ -1,7 +1,5 @@
 // This file handles the creation and retrieval of notes associated with clients.
 
-const db = firebase.firestore();
-
 // Function to add a note for a specific client
 function addNote(clientId, noteContent) {
     const note = {
@@ -9,7 +7,7 @@ function addNote(clientId, noteContent) {
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     };
 
-    db.collection('clients').doc(clientId).collection('notes').add(note)
+    window.db.collection('clients').doc(clientId).collection('notes').add(note)
         .then(() => {
             console.log('Note added successfully');
             // Optionally, refresh the notes list or provide feedback to the user
@@ -21,7 +19,7 @@ function addNote(clientId, noteContent) {
 
 // Function to retrieve notes for a specific client
 function getNotes(clientId) {
-    db.collection('clients').doc(clientId).collection('notes').orderBy('timestamp', 'desc').get()
+    window.db.collection('clients').doc(clientId).collection('notes').orderBy('timestamp', 'desc').get()
         .then((querySnapshot) => {
             const notes = [];
             querySnapshot.forEach((doc) => {
@@ -75,14 +73,12 @@ async function handleNoteSubmit(e) {
         
         // Jeśli notatka jest przypisana do klienta, pobierz jego imię
         if (clientId) {
-            const clientDoc = await db.collection('clients').doc(clientId).get();
-            if (clientDoc.exists) {
-                const client = clientDoc.data();
-                noteData.clientName = `${client.firstName} ${client.lastName}`;
-            }
+            const clientDoc = await window.db.collection('clients').doc(clientId).get();
+            const clientName = clientDoc.exists ? clientDoc.data().firstName + ' ' + clientDoc.data().lastName : 'Nieznany klient';
+            noteData.clientName = clientName;
         }
         
-        await db.collection('notes').add(noteData);
+        await window.db.collection('notes').add(noteData);
         
         showToast('Notatka dodana', 'success');
         document.getElementById('noteModal').classList.remove('active');
@@ -103,7 +99,7 @@ async function renderNotesList() {
     if (!container) return;
     
     try {
-        const snapshot = await db.collection('notes')
+        const snapshot = await window.db.collection('notes')
             .orderBy('createdAt', 'desc')
             .limit(50)
             .get();
@@ -154,7 +150,7 @@ async function deleteNote(noteId) {
     showLoading(true);
     
     try {
-        await db.collection('notes').doc(noteId).delete();
+        await window.db.collection('notes').doc(noteId).delete();
         showToast('Notatka usunięta', 'success');
         renderNotesList();
     } catch (error) {
