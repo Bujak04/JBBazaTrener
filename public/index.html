@@ -391,17 +391,25 @@
                             <label>
                                 <input type="checkbox" name="serviceType" value="prowadzenie"> 📊 Prowadzenie
                             </label>
+                            <label>
+                                <input type="checkbox" name="serviceType" value="wspolpraca_prywatna"> 🤝 Współpraca prywatna
+                            </label>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>Data rozpoczęcia *</label>
+                        <label id="startDateLabel">Data rozpoczęcia *</label>
                         <input type="date" id="serviceStartDate" required>
                     </div>
 
                     <div class="form-group" id="endDateGroup" style="display: none;">
-                        <label>Data zakończenia *</label>
+                        <label id="endDateLabel">Data zakończenia *</label>
                         <input type="date" id="serviceEndDate">
+                    </div>
+
+                    <div class="form-group" id="priceGroup" style="display: none;">
+                        <label>Cena (PLN)</label>
+                        <input type="number" id="servicePrice" step="0.01" min="0" placeholder="np. 500.00">
                     </div>
 
                     <div class="form-group">

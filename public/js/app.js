@@ -179,27 +179,48 @@ function initializeForms() {
         fileUploadForm.addEventListener('submit', handleFileUpload);
     }
     
-    // Checkbox prowadzenie - ukryj datę zakończenia dla prowadzenia
+    // Checkbox usług - dynamiczna zmiana etykiet i pól
     const serviceCheckboxes = document.querySelectorAll('input[name="serviceType"]');
     serviceCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', () => {
-            const prowadzenieChecked = Array.from(serviceCheckboxes)
-                .find(cb => cb.value === 'prowadzenie' && cb.checked);
+            const dietaChecked = Array.from(serviceCheckboxes).find(cb => cb.value === 'dieta' && cb.checked);
+            const planChecked = Array.from(serviceCheckboxes).find(cb => cb.value === 'plan_treningowy' && cb.checked);
+            const prowadzenieChecked = Array.from(serviceCheckboxes).find(cb => cb.value === 'prowadzenie' && cb.checked);
+            const prywatnaChecked = Array.from(serviceCheckboxes).find(cb => cb.value === 'wspolpraca_prywatna' && cb.checked);
             
-            const otherServicesChecked = Array.from(serviceCheckboxes)
-                .filter(cb => cb.value !== 'prowadzenie' && cb.checked).length > 0;
-            
-            // Pokaż datę zakończenia tylko jeśli wybrano dietę lub plan treningowy
-            // (nie pokazuj dla samego prowadzenia)
-            document.getElementById('endDateGroup').style.display = 
-                otherServicesChecked ? 'block' : 'none';
-            
-            // Jeśli prowadzenie jest jedyną wybraną usługą, ukryj pole daty zakończenia
+            const startDateLabel = document.getElementById('startDateLabel');
+            const endDateLabel = document.getElementById('endDateLabel');
+            const endDateGroup = document.getElementById('endDateGroup');
             const endDateInput = document.getElementById('serviceEndDate');
-            if (endDateInput && prowadzenieChecked && !otherServicesChecked) {
+            const priceGroup = document.getElementById('priceGroup');
+            
+            // Dla diety i planu treningowego - to jest "data kupna" i nie ma końca
+            if ((dietaChecked || planChecked) && !prowadzenieChecked && !prywatnaChecked) {
+                startDateLabel.textContent = 'Data kupna *';
+                endDateGroup.style.display = 'none';
                 endDateInput.removeAttribute('required');
-            } else if (endDateInput && otherServicesChecked) {
-                endDateInput.setAttribute('required', 'required');
+                priceGroup.style.display = 'none';
+            }
+            // Dla prowadzenia - ma datę rozpoczęcia i zakończenia
+            else if (prowadzenieChecked && !dietaChecked && !planChecked && !prywatnaChecked) {
+                startDateLabel.textContent = 'Data rozpoczęcia *';
+                endDateGroup.style.display = 'none';
+                endDateInput.removeAttribute('required');
+                priceGroup.style.display = 'none';
+            }
+            // Dla współpracy prywatnej - pokaż pole ceny
+            else if (prywatnaChecked) {
+                startDateLabel.textContent = 'Data rozpoczęcia *';
+                endDateGroup.style.display = 'none';
+                endDateInput.removeAttribute('required');
+                priceGroup.style.display = 'block';
+            }
+            // Inne kombinacje
+            else {
+                startDateLabel.textContent = 'Data rozpoczęcia *';
+                endDateGroup.style.display = 'none';
+                endDateInput.removeAttribute('required');
+                priceGroup.style.display = 'none';
             }
         });
     });

@@ -252,6 +252,16 @@ function renderClientDetails(client) {
     document.getElementById('clientDetailsName').textContent = 
         `${client.firstName} ${client.lastName}`;
     
+    // Oblicz liczbę dni od dodania klienta
+    let daysSinceAdded = 0;
+    let addedDateStr = 'Brak daty';
+    if (client.createdAt) {
+        const createdDate = client.createdAt.toDate ? client.createdAt.toDate() : new Date(client.createdAt);
+        addedDateStr = formatDate(createdDate);
+        const today = new Date();
+        daysSinceAdded = Math.floor((today - createdDate) / (1000 * 60 * 60 * 24));
+    }
+    
     // Dane osobowe
     const personalData = document.getElementById('clientPersonalData');
     personalData.innerHTML = `
@@ -270,6 +280,12 @@ function renderClientDetails(client) {
         <div class="detail-item">
             <span class="detail-label">Email</span>
             <span class="detail-value">${client.email || 'Brak'}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Data dodania</span>
+            <span class="detail-value" style="cursor: pointer;" onclick="changeClientAddedDate('${client.id}', '${addedDateStr}')" title="Kliknij aby zmienić datę">
+                ${addedDateStr} <span style="color: var(--text-gray); font-size: 13px;">(${daysSinceAdded} dni)</span>
+            </span>
         </div>
         <div class="detail-item">
             <span class="detail-label">Status</span>
@@ -381,10 +397,19 @@ function renderClientMeasurements(client) {
         return dateB - dateA;
     }).slice(0, 3);
     
-    container.innerHTML = sortedMeasurements.map((m, index) => `
+    container.innerHTML = sortedMeasurements.map((m) => {
+        // Znajdź właściwy index w oryginalnej tablicy
+        const originalIndex = measurements.findIndex(measurement => {
+            const mDate = m.date.toDate ? m.date.toDate().getTime() : new Date(m.date).getTime();
+            const measDate = measurement.date.toDate ? measurement.date.toDate().getTime() : new Date(measurement.date).getTime();
+            return measDate === mDate && measurement.weight === m.weight;
+        });
+        
+        return `
         <div class="measurement-card">
             <div class="measurement-header">
                 <span class="measurement-date">${formatDate(m.date)}</span>
+                <button class="btn-danger" onclick="deleteClientMeasurement('${client.id}', ${originalIndex})" style="padding: 3px 8px; font-size: 12px;">Usuń</button>
             </div>
             <div class="measurement-grid">
                 ${m.weight ? `
@@ -419,7 +444,8 @@ function renderClientMeasurements(client) {
                 ` : ''}
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
     
     // Dodaj link do wszystkich pomiarów jeśli jest ich więcej niż 3
     if (measurements.length > 3) {
@@ -558,7 +584,8 @@ function getServiceLabel(type) {
     const labels = {
         'dieta': 'Dieta',
         'plan_treningowy': 'Plan treningowy',
-        'prowadzenie': 'Prowadzenie'
+        'prowadzenie': 'Prowadzenie',
+        'wspolpraca_prywatna': 'Współpraca prywatna'
     };
     return labels[type] || type;
 }
@@ -567,7 +594,8 @@ function getServiceIcon(type) {
     const icons = {
         'dieta': '🥗',
         'plan_treningowy': '💪',
-        'prowadzenie': '📊'
+        'prowadzenie': '📊',
+        'wspolpraca_prywatna': '🤝'
     };
     return icons[type] || '📋';
 }
@@ -608,6 +636,94 @@ async function changeClientStatus(clientId, newStatus) {
     }
 }
 
+// Usuwanie pomiaru klienta
+async function deleteClientMeasurement(clientId, measurementIndex) {
+    if (!confirm('Czy na pewno chcesz usunąć ten pomiar?')) {
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        const clientRef = window.db.collection('clients').doc(clientId);
+        const clientDoc = await clientRef.get();
+        
+        if (!clientDoc.exists) {
+            showToast('Nie znaleziono klienta', 'error');
+            showLoading(false);
+            return;
+        }
+        
+        const clientData = clientDoc.data();
+        const measurements = [...(clientData.measurements || [])];
+        
+        if (!measurements[measurementIndex]) {
+            showToast('Nie znaleziono pomiaru', 'error');
+            showLoading(false);
+            return;
+        }
+        
+        // Usuń pomiar z tablicy
+        measurements.splice(measurementIndex, 1);
+        
+        await clientRef.update({
+            measurements: measurements,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        showToast('Pomiar usunięty', 'success');
+        
+        // Odśwież widok szczegółów klienta
+        if (window.currentClient && window.currentClient.id === clientId) {
+            openClientDetails(clientId);
+        }
+        
+    } catch (error) {
+        console.error('Error deleting measurement:', error);
+        showToast('Błąd usuwania pomiaru: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Zmiana daty dodania klienta
+async function changeClientAddedDate(clientId, currentDate) {
+    const newDate = prompt('Podaj nową datę dodania klienta (RRRR-MM-DD):', currentDate);
+    
+    if (!newDate) {
+        return;
+    }
+    
+    // Walidacja daty
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(newDate)) {
+        showToast('Nieprawidłowy format daty. Użyj RRRR-MM-DD', 'error');
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        await window.db.collection('clients').doc(clientId).update({
+            createdAt: firebase.firestore.Timestamp.fromDate(new Date(newDate))
+        });
+        
+        showToast('Data dodania zmieniona', 'success');
+        
+        // Odśwież widok szczegółów
+        if (window.currentClient && window.currentClient.id === clientId) {
+            openClientDetails(clientId);
+        }
+        
+    } catch (error) {
+        console.error('Error changing added date:', error);
+        showToast('Błąd zmiany daty', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+
 // Eksporty globalne
 window.handleClientSubmit = handleClientSubmit;
 window.renderClientsList = renderClientsList;
@@ -615,5 +731,8 @@ window.openClientDetails = openClientDetails;
 window.openClientModal = openClientModal;
 window.deleteClient = deleteClient;
 window.changeClientStatus = changeClientStatus;
+window.deleteClientMeasurement = deleteClientMeasurement;
+window.changeClientAddedDate = changeClientAddedDate;
 
 console.log('✅ Clients.js loaded');
+

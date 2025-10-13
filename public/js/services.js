@@ -94,6 +94,7 @@ async function handleServiceSubmit(e) {
     const endDateInput = document.getElementById('serviceEndDate');
     const statusSelect = document.getElementById('serviceStatus');
     const notesTextarea = document.getElementById('serviceNotes');
+    const priceInput = document.getElementById('servicePrice');
     
     if (!startDateInput || !statusSelect) {
         showToast('Błąd: brak pól formularza', 'error');
@@ -104,6 +105,7 @@ async function handleServiceSubmit(e) {
     const endDate = endDateInput ? endDateInput.value : null;
     const status = statusSelect.value;
     const notes = notesTextarea ? notesTextarea.value.trim() : '';
+    const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
     
     showLoading(true);
     
@@ -128,7 +130,7 @@ async function handleServiceSubmit(e) {
                 notes: notes,
                 payment: {
                     isPaid: false,
-                    amount: 0,
+                    amount: price || 0,
                     dueDate: null,
                     paidDate: null
                 },
@@ -141,9 +143,15 @@ async function handleServiceSubmit(e) {
                 endDateCalc.setDate(endDateCalc.getDate() + 30);
                 service.endDate = firebase.firestore.Timestamp.fromDate(endDateCalc);
             } 
-            // Dieta i plan treningowy - data z formularza
-            else if (endDate) {
-                service.endDate = firebase.firestore.Timestamp.fromDate(new Date(endDate));
+            // Dieta i plan treningowy - bez daty końca (to jest data kupna)
+            else if (type === 'dieta' || type === 'plan_treningowy') {
+                service.endDate = null;
+                service.purchaseDate = firebase.firestore.Timestamp.fromDate(new Date(startDate));
+            }
+            // Współpraca prywatna - bez daty końca, z ceną
+            else if (type === 'wspolpraca_prywatna') {
+                service.endDate = null;
+                service.price = price;
             }
             
             return service;
@@ -182,32 +190,9 @@ async function handleServiceSubmit(e) {
 
 // Przedłużanie prowadzenia
 async function extendService(clientId, serviceIndex) {
-    // Pobierz aktualną datę zakończenia
-    let currentEndDateStr = '';
-    try {
-        const clientRef = window.db.collection('clients').doc(clientId);
-        const clientDoc = await clientRef.get();
-        if (clientDoc.exists) {
-            const service = clientDoc.data().services[serviceIndex];
-            if (service && service.endDate) {
-                const endDate = service.endDate.toDate();
-                currentEndDateStr = endDate.toISOString().split('T')[0];
-            }
-        }
-    } catch (e) {
-        console.error('Error getting current end date:', e);
-    }
+    const days = prompt('O ile dni przedłużyć prowadzenie?', '30');
     
-    const newEndDate = prompt('Podaj nową datę zakończenia (RRRR-MM-DD):', currentEndDateStr);
-    
-    if (!newEndDate) {
-        return;
-    }
-    
-    // Walidacja daty
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(newEndDate)) {
-        showToast('Nieprawidłowy format daty. Użyj RRRR-MM-DD', 'error');
+    if (!days || isNaN(days) || parseInt(days) <= 0) {
         return;
     }
     
@@ -234,8 +219,18 @@ async function extendService(clientId, serviceIndex) {
         
         const service = services[serviceIndex];
         
-        // Ustaw nową datę zakończenia
-        services[serviceIndex].endDate = firebase.firestore.Timestamp.fromDate(new Date(newEndDate));
+        if (!service.endDate) {
+            showToast('Usługa nie ma daty zakończenia', 'error');
+            showLoading(false);
+            return;
+        }
+        
+        // Dodaj dni do daty zakończenia
+        const currentEndDate = service.endDate.toDate();
+        const newEndDate = new Date(currentEndDate);
+        newEndDate.setDate(newEndDate.getDate() + parseInt(days));
+        
+        services[serviceIndex].endDate = firebase.firestore.Timestamp.fromDate(newEndDate);
         services[serviceIndex].status = 'aktywny';
         
         const newStatus = calculateClientStatus(services);
@@ -246,7 +241,7 @@ async function extendService(clientId, serviceIndex) {
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        showToast(`Prowadzenie przedłużone do ${newEndDate}`, 'success');
+        showToast(`Prowadzenie przedłużone o ${days} dni`, 'success');
         
         if (window.currentClient && window.currentClient.id === clientId) {
             openClientDetails(clientId);
@@ -289,13 +284,17 @@ async function endService(clientId, serviceIndex) {
         
         const service = services[serviceIndex];
         service.status = 'zakonczony';
-        service.endedAt = firebase.firestore.FieldValue.serverTimestamp();
+        service.endedAt = new Date(); // Zmieniono z serverTimestamp() na new Date()
         
-        // Dodaj do historii usług
+        // Dodaj do historii usług (bez serverTimestamp w obiekcie service)
+        const serviceForHistory = { ...service };
+        delete serviceForHistory.endedAt; // Usuń endedAt żeby nie było problemu
+        
         await window.db.collection('services_history').add({
             clientId: clientId,
             clientName: `${clientData.firstName} ${clientData.lastName}`,
-            service: service,
+            service: serviceForHistory,
+            endedAt: firebase.firestore.FieldValue.serverTimestamp(),
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         
