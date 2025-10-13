@@ -217,7 +217,7 @@ function initializeForms() {
     // Checkbox usług - dynamiczna zmiana etykiet i pól
     const serviceCheckboxes = document.querySelectorAll('input[name="serviceType"]');
     serviceCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
+        checkbox.addEventListener('change', async () => {
             const checkedBoxes = Array.from(serviceCheckboxes).filter(cb => cb.checked);
             const dietaChecked = checkedBoxes.find(cb => cb.value === 'dieta');
             const planChecked = checkedBoxes.find(cb => cb.value === 'plan_treningowy');
@@ -229,14 +229,52 @@ function initializeForms() {
             const endDateGroup = document.getElementById('endDateGroup');
             const endDateInput = document.getElementById('serviceEndDate');
             const priceInput = document.getElementById('servicePrice');
+            const paymentDescInput = document.getElementById('servicePaymentDescription');
             
             // Oblicz sugerowaną cenę na podstawie zaznaczonych usług
             let suggestedPrice = 0;
+            let isFirstProwadzenie = false;
+            
             if (typeof window.servicePricing !== 'undefined') {
-                checkedBoxes.forEach(cb => {
+                for (const cb of checkedBoxes) {
                     const priceKey = cb.value;
-                    suggestedPrice += window.servicePricing[priceKey] || 0;
-                });
+                    
+                    // Sprawdź czy to pierwszy miesiąc prowadzenia
+                    if (priceKey === 'prowadzenie') {
+                        const form = document.getElementById('serviceForm');
+                        const clientId = form?.dataset?.clientId;
+                        
+                        if (clientId) {
+                            try {
+                                const clientDoc = await window.db.collection('clients').doc(clientId).get();
+                                if (clientDoc.exists) {
+                                    const clientData = clientDoc.data();
+                                    const hasProwadzenie = (clientData.services || []).some(s => 
+                                        s.type === 'prowadzenie' && 
+                                        (s.status === 'aktywny' || s.status === 'wygasajacy')
+                                    );
+                                    
+                                    if (!hasProwadzenie) {
+                                        isFirstProwadzenie = true;
+                                        suggestedPrice += window.servicePricing.prowadzenie_pierwszy || 0;
+                                        if (paymentDescInput) {
+                                            paymentDescInput.value = 'Pierwszy miesiąc';
+                                        }
+                                    } else {
+                                        suggestedPrice += window.servicePricing.prowadzenie || 0;
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Error checking prowadzenie:', error);
+                                suggestedPrice += window.servicePricing.prowadzenie || 0;
+                            }
+                        } else {
+                            suggestedPrice += window.servicePricing.prowadzenie || 0;
+                        }
+                    } else {
+                        suggestedPrice += window.servicePricing[priceKey] || 0;
+                    }
+                }
             }
             
             // Ustaw sugerowaną cenę

@@ -5,6 +5,7 @@ let servicePricing = {
     dieta: 300,
     plan_treningowy: 250,
     prowadzenie: 400,
+    prowadzenie_pierwszy: 390,
     wspolpraca_prywatna: 500
 };
 
@@ -29,12 +30,14 @@ async function savePricing() {
         const priceDieta = parseFloat(document.getElementById('priceDieta').value) || 0;
         const pricePlan = parseFloat(document.getElementById('pricePlan').value) || 0;
         const priceProwadzenie = parseFloat(document.getElementById('priceProwadzenie').value) || 0;
+        const priceProwadzeniePierwszy = parseFloat(document.getElementById('priceProwadzeniePierwszy').value) || 0;
         const priceWspolpraca = parseFloat(document.getElementById('priceWspolpraca').value) || 0;
         
         servicePricing = {
             dieta: priceDieta,
             plan_treningowy: pricePlan,
             prowadzenie: priceProwadzenie,
+            prowadzenie_pierwszy: priceProwadzeniePierwszy,
             wspolpraca_prywatna: priceWspolpraca
         };
         
@@ -55,6 +58,7 @@ function updatePricingInputs() {
         priceDieta: servicePricing.dieta || 0,
         pricePlan: servicePricing.plan_treningowy || 0,
         priceProwadzenie: servicePricing.prowadzenie || 0,
+        priceProwadzeniePierwszy: servicePricing.prowadzenie_pierwszy || 0,
         priceWspolpraca: servicePricing.wspolpraca_prywatna || 0
     };
     

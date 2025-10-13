@@ -199,7 +199,12 @@
                             <input type="number" id="pricePlan" class="price-input" step="0.01" min="0" placeholder="Cena w PLN">
                         </div>
                         <div class="pricing-card">
-                            <h4>📊 Prowadzenie (miesięcznie)</h4>
+                            <h4>📊 Prowadzenie - pierwszy miesiąc</h4>
+                            <input type="number" id="priceProwadzeniePierwszy" class="price-input" step="0.01" min="0" placeholder="Cena w PLN">
+                            <small>Automatycznie ustawiana dla nowych podopiecznych</small>
+                        </div>
+                        <div class="pricing-card">
+                            <h4>📊 Prowadzenie - kolejne miesiące</h4>
                             <input type="number" id="priceProwadzenie" class="price-input" step="0.01" min="0" placeholder="Cena w PLN">
                         </div>
                         <div class="pricing-card">
@@ -479,12 +484,19 @@
 
                     <div class="form-group">
                         <label id="startDateLabel">Data rozpoczęcia *</label>
-                        <input type="date" id="serviceStartDate" required>
+                        <div class="date-input-wrapper">
+                            <input type="text" id="serviceStartDateDisplay" placeholder="DD.MM.RRRR" pattern="\d{2}\.\d{2}\.\d{4}" maxlength="10" required>
+                            <input type="date" id="serviceStartDate" style="display: none;">
+                        </div>
+                        <small class="form-hint">Format: dzień.miesiąc.rok (np. 13.10.2025)</small>
                     </div>
 
                     <div class="form-group" id="endDateGroup" style="display: none;">
                         <label id="endDateLabel">Data zakończenia *</label>
-                        <input type="date" id="serviceEndDate">
+                        <div class="date-input-wrapper">
+                            <input type="text" id="serviceEndDateDisplay" placeholder="DD.MM.RRRR" pattern="\d{2}\.\d{2}\.\d{4}" maxlength="10">
+                            <input type="date" id="serviceEndDate" style="display: none;">
+                        </div>
                     </div>
 
                     <div class="form-group" id="priceGroup">
