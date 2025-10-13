@@ -1,51 +1,51 @@
 // This file manages service-related functionalities, including tracking active, expiring, and unpaid services.
 
-const db = firebase.firestore();
+
 
 // Function to get all services
 async function getServices() {
-    const servicesSnapshot = await db.collection('services').get();
+    const servicesSnapshot = await window.db.collection('services').get();
     const services = servicesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return services;
 }
 
 // Function to add a new service
 async function addService(serviceData) {
-    const serviceRef = await db.collection('services').add(serviceData);
+    const serviceRef = await window.db.collection('services').add(serviceData);
     return serviceRef.id;
 }
 
 // Function to update a service
 async function updateService(serviceId, updatedData) {
-    await db.collection('services').doc(serviceId).update(updatedData);
+    await window.db.collection('services').doc(serviceId).update(updatedData);
 }
 
 // Function to delete a service
 async function deleteService(serviceId) {
-    await db.collection('services').doc(serviceId).delete();
+    await window.db.collection('services').doc(serviceId).delete();
 }
 
 // Function to get active services
 async function getActiveServices() {
-    const activeServicesSnapshot = await db.collection('services').where('status', '==', 'active').get();
+    const activeServicesSnapshot = await window.db.collection('services').where('status', '==', 'active').get();
     return activeServicesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 // Function to get expiring services
 async function getExpiringServices() {
-    const expiringServicesSnapshot = await db.collection('services').where('status', '==', 'expiring').get();
+    const expiringServicesSnapshot = await window.db.collection('services').where('status', '==', 'expiring').get();
     return expiringServicesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 // Function to get unpaid services
 async function getUnpaidServices() {
-    const unpaidServicesSnapshot = await db.collection('services').where('status', '==', 'unpaid').get();
+    const unpaidServicesSnapshot = await window.db.collection('services').where('status', '==', 'unpaid').get();
     return unpaidServicesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 // Function to track service status updates
 async function updateServiceStatus(serviceId, newStatus) {
-    await db.collection('services').doc(serviceId).update({ status: newStatus });
+    await window.db.collection('services').doc(serviceId).update({ status: newStatus });
 }
 
 // Otwieranie modala dodawania usługi
@@ -108,7 +108,7 @@ async function handleServiceSubmit(e) {
     showLoading(true);
     
     try {
-        const clientRef = db.collection('clients').doc(clientId);
+        const clientRef = window.db.collection('clients').doc(clientId);
         const clientDoc = await clientRef.get();
         
         if (!clientDoc.exists) {
@@ -171,7 +171,7 @@ async function extendService(clientId, serviceIndex) {
     showLoading(true);
     
     try {
-        const clientRef = db.collection('clients').doc(clientId);
+        const clientRef = window.db.collection('clients').doc(clientId);
         const clientDoc = await clientRef.get();
         
         if (!clientDoc.exists) {
@@ -236,7 +236,7 @@ async function endService(clientId, serviceIndex) {
     showLoading(true);
     
     try {
-        const clientRef = db.collection('clients').doc(clientId);
+        const clientRef = window.db.collection('clients').doc(clientId);
         const clientDoc = await clientRef.get();
         
         if (!clientDoc.exists) {
@@ -259,7 +259,7 @@ async function endService(clientId, serviceIndex) {
         service.endedAt = firebase.firestore.FieldValue.serverTimestamp();
         
         // Dodaj do historii usług
-        await db.collection('services_history').add({
+        await window.db.collection('services_history').add({
             clientId: clientId,
             clientName: `${clientData.firstName} ${clientData.lastName}`,
             service: service,
@@ -392,7 +392,7 @@ async function updateServicesHistory() {
     if (!container) return;
     
     try {
-        const snapshot = await db.collection('services_history')
+        const snapshot = await window.db.collection('services_history')
             .orderBy('createdAt', 'desc')
             .limit(20)
             .get();

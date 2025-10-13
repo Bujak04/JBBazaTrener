@@ -1,11 +1,8 @@
 // clients.js - This file manages client-related functionalities, such as adding, editing, deleting clients, and retrieving client data from Firestore.
 
-const db = firebase.firestore();
-const clientsCollection = db.collection('clients');
-
 // Function to retrieve all clients from Firestore
 async function getClients() {
-    const snapshot = await clientsCollection.get();
+    const snapshot = await window.db.collection('clients').get();
     const clients = [];
     snapshot.forEach(doc => {
         clients.push({ id: doc.id, ...doc.data() });
@@ -16,7 +13,7 @@ async function getClients() {
 // Function to add a new client
 async function addClient(clientData) {
     const { imieNazwisko, plec, wiek, telefon, email } = clientData;
-    await clientsCollection.add({
+    await window.db.collection('clients').add({
         imieNazwisko,
         plec,
         wiek,
@@ -32,17 +29,17 @@ async function addClient(clientData) {
 
 // Function to edit an existing client
 async function editClient(clientId, updatedData) {
-    await clientsCollection.doc(clientId).update(updatedData);
+    await window.db.collection('clients').doc(clientId).update(updatedData);
 }
 
 // Function to delete a client
 async function deleteClient(clientId) {
-    await clientsCollection.doc(clientId).delete();
+    await window.db.collection('clients').doc(clientId).delete();
 }
 
 // Function to get client details by ID
 async function getClientDetails(clientId) {
-    const doc = await clientsCollection.doc(clientId).get();
+    const doc = await window.db.collection('clients').doc(clientId).get();
     return { id: doc.id, ...doc.data() };
 }
 
@@ -81,7 +78,7 @@ async function handleClientSubmit(e) {
     try {
         if (clientId) {
             // Aktualizacja istniejącego klienta
-            await db.collection('clients').doc(clientId).update(clientData);
+            await window.db.collection('clients').doc(clientId).update(clientData);
             showToast('Klient zaktualizowany', 'success');
         } else {
             // Dodawanie nowego klienta
@@ -91,7 +88,7 @@ async function handleClientSubmit(e) {
             clientData.measurements = [];
             clientData.files = [];
             
-            await db.collection('clients').add(clientData);
+            await window.db.collection('clients').add(clientData);
             showToast('Klient dodany', 'success');
         }
         

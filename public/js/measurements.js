@@ -1,6 +1,6 @@
 // This file manages client measurements, including adding new measurements and displaying progress charts.
 
-const db = firebase.firestore();
+
 const measurementsList = document.getElementById('measurements-list');
 const addMeasurementForm = document.getElementById('add-measurement-form');
 const clientId = localStorage.getItem('clientId'); // Assuming clientId is stored in localStorage
@@ -9,7 +9,7 @@ let selectedMeasurementClient = null;
 
 // Function to fetch and display measurements for a specific client
 function fetchMeasurements() {
-    db.collection('clients').doc(clientId).get().then(doc => {
+    window.db.collection('clients').doc(clientId).get().then(doc => {
         if (doc.exists) {
             const measurements = doc.data().pomiary || [];
             measurementsList.innerHTML = '';
@@ -36,7 +36,7 @@ addMeasurementForm.addEventListener('submit', (e) => {
         // Add other measurement fields as necessary
     };
 
-    db.collection('clients').doc(clientId).update({
+    window.db.collection('clients').doc(clientId).update({
         pomiary: firebase.firestore.FieldValue.arrayUnion(newMeasurement)
     }).then(() => {
         fetchMeasurements();
@@ -85,7 +85,7 @@ async function loadClientMeasurements(clientId) {
     showLoading(true);
     
     try {
-        const doc = await db.collection('clients').doc(clientId).get();
+        const doc = await window.db.collection('clients').doc(clientId).get();
         
         if (!doc.exists) {
             showToast('Nie znaleziono klienta', 'error');
@@ -260,7 +260,7 @@ async function handleMeasurementSubmit(e) {
     showLoading(true);
     
     try {
-        const clientRef = db.collection('clients').doc(selectedMeasurementClient.id);
+        const clientRef = window.db.collection('clients').doc(selectedMeasurementClient.id);
         const clientDoc = await clientRef.get();
         const clientData = clientDoc.data();
         
@@ -294,7 +294,7 @@ async function deleteMeasurement(clientId, measurementIndex) {
     showLoading(true);
     
     try {
-        const clientRef = db.collection('clients').doc(clientId);
+        const clientRef = window.db.collection('clients').doc(clientId);
         const clientDoc = await clientRef.get();
         const clientData = clientDoc.data();
         
