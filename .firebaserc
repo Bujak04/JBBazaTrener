@@ -1,0 +1,12 @@
+{
+  "projects": {
+    "personal-trainer-panel": "your-firebase-project-id"
+  },
+  "targets": {
+    "personal-trainer-panel": {
+      "hosting": {
+        "site": "your-firebase-hosting-site"
+      }
+    }
+  }
+}

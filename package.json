@@ -1,0 +1,26 @@
+{
+  "name": "personal-trainer-panel",
+  "version": "1.0.0",
+  "description": "A personal trainer management panel for tracking clients, services, and measurements.",
+  "main": "public/js/app.js",
+  "scripts": {
+    "start": "firebase emulators:start",
+    "deploy": "firebase deploy",
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {
+    "firebase": "^9.0.0",
+    "chart.js": "^3.0.0"
+  },
+  "devDependencies": {
+    "firebase-tools": "^9.0.0"
+  },
+  "keywords": [
+    "personal-trainer",
+    "management",
+    "firebase",
+    "pwa"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

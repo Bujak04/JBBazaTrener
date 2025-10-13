@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Funkcja sprawdzająca czy użytkownik to admin
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == "SuU7wSzrXIMbmWboRJNhOIxvN4x1";
+    }
+    
+    // Klienci - tylko admin
+    match /clients/{clientId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Notatki - tylko admin
+    match /notes/{noteId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Historia usług - tylko admin
+    match /services_history/{historyId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Tokeny powiadomień - tylko admin
+    match /admin_tokens/{tokenId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

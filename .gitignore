@@ -1,0 +1,33 @@
+# Firebase config - NIE COMMITUJ DO GITHUBA!
+# Odkomentuj poniższe linie jeśli chcesz ukryć swoje dane Firebase
+# public/js/firebase-config.js
+
+# Node modules
+node_modules/
+functions/node_modules/
+
+# Firebase cache
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temp files
+*.tmp
+.temp/

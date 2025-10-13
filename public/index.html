@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Panel administratora - Jakub Bujakiewicz Trener Personalny">
+    <meta name="theme-color" content="#0ed145">
+    <title>Panel Trenera - Jakub Bujakiewicz</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Strona logowania -->
+    <div id="loginPage" class="page active">
+        <div class="login-container">
+            <div class="login-box">
+                <h1>Jakub Bujakiewicz</h1>
+                <h2>Trener Personalny</h2>
+                <div class="login-form">
+                    <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
+                    <input type="password" id="passwordInput" placeholder="Hasło" autocomplete="current-password">
+                    <button id="loginBtn" class="btn-primary">Zaloguj się</button>
+                    <div id="loginError" class="error-message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Główny panel -->
+    <div id="mainPanel" class="page">
+        <!-- Nagłówek -->
+        <header class="header">
+            <div class="header-content">
+                <h1>Jakub Bujakiewicz - Panel Trenera</h1>
+                <div class="header-actions">
+                    <button id="notificationsBtn" class="icon-btn">
+                        <span class="notification-badge" id="notificationBadge">0</span>
+                        🔔
+                    </button>
+                    <button id="logoutBtn" class="btn-secondary">Wyloguj</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Nawigacja -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="home">Strona Główna</button>
+            <button class="tab-btn" data-tab="clients">Klienci</button>
+            <button class="tab-btn" data-tab="services">Usługi</button>
+            <button class="tab-btn" data-tab="notes">Notatki</button>
+            <button class="tab-btn" data-tab="measurements">Pomiary</button>
+        </nav>
+
+        <!-- Zawartość zakładek -->
+        <main class="main-content">
+            
+            <!-- STRONA GŁÓWNA -->
+            <div id="homeTab" class="tab-content active">
+                <div class="dashboard">
+                    <h2>Podsumowanie</h2>
+                    
+                    <!-- Statystyki klientów -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-info">
+                                <h3 id="totalClients">0</h3>
+                                <p>Wszyscy klienci</p>
+                            </div>
+                        </div>
+                        <div class="stat-card active">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-info">
+                                <h3 id="activeClients">0</h3>
+                                <p>Aktywni</p>
+                            </div>
+                        </div>
+                        <div class="stat-card expiring">
+                            <div class="stat-icon">⚠️</div>
+                            <div class="stat-info">
+                                <h3 id="expiringClients">0</h3>
+                                <p>Wygasający</p>
+                            </div>
+                        </div>
+                        <div class="stat-card inactive">
+                            <div class="stat-icon">❌</div>
+                            <div class="stat-info">
+                                <h3 id="inactiveClients">0</h3>
+                                <p>Nieaktywni</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statystyki usług -->
+                    <div class="services-stats">
+                        <h3>Usługi</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">🥗</div>
+                                <div class="stat-info">
+                                    <h3 id="dietCount">0</h3>
+                                    <p>Diety</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">💪</div>
+                                <div class="stat-info">
+                                    <h3 id="planCount">0</h3>
+                                    <p>Plany treningowe</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">📊</div>
+                                <div class="stat-info">
+                                    <h3 id="coachingCount">0</h3>
+                                    <p>Prowadzenie</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wykresy -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3>Status klientów</h3>
+                            <canvas id="clientsChart"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Rozkład usług</h3>
+                            <canvas id="servicesChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Nadchodzące zakończenia -->
+                    <div class="expiring-list">
+                        <h3>Kończące się prowadzenia</h3>
+                        <div id="expiringList" class="list-container">
+                            <!-- Dynamicznie generowane -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KLIENCI -->
+            <div id="clientsTab" class="tab-content">
+                <div class="tab-header">
+                    <h2>Klienci</h2>
+                    <button id="addClientBtn" class="btn-primary">+ Dodaj klienta</button>
+                </div>
+
+                <!-- Filtry -->
+                <div class="filters">
+                    <input type="text" id="clientSearch" placeholder="Szukaj po imieniu lub nazwisku..." class="search-input">
+                    <select id="statusFilter" class="filter-select">
+                        <option value="all">Wszyscy</option>
+                        <option value="aktywny">Aktywni</option>
+                        <option value="wygasa">Wygasający</option>
+                        <option value="nieaktywny">Nieaktywni</option>
+                    </select>
+                </div>
+
+                <!-- Lista klientów -->
+                <div id="clientsList" class="clients-list">
+                    <!-- Dynamicznie generowane -->
+                </div>
+            </div>
+
+            <!-- USŁUGI -->
+            <div id="servicesTab" class="tab-content">
+                <h2>Zarządzanie usługami</h2>
+                
+                <div class="services-overview">
+                    <div class="service-category">
+                        <h3>Prowadzenie - Status</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h3 id="activeCoaching">0</h3>
+                                <p>Aktywne</p>
+                            </div>
+                            <div class="stat-card expiring">
+                                <h3 id="expiringCoaching">0</h3>
+                                <p>Wygasające</p>
+                            </div>
+                            <div class="stat-card inactive">
+                                <h3 id="unpaidCoaching">0</h3>
+                                <p>Nieopłacone</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="service-category">
+                        <h3>Historia usług</h3>
+                        <div id="servicesHistory" class="history-list">
+                            <!-- Dynamicznie generowane -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOTATKI -->
+            <div id="notesTab" class="tab-content">
+                <div class="tab-header">
+                    <h2>Notatki</h2>
+                    <button id="addNoteBtn" class="btn-primary">+ Dodaj notatkę</button>
+                </div>
+
+                <div id="notesList" class="notes-list">
+                    <!-- Dynamicznie generowane -->
+                </div>
+            </div>
+
+            <!-- POMIARY -->
+            <div id="measurementsTab" class="tab-content">
+                <h2>Pomiary klientów</h2>
+                
+                <select id="measurementClientSelect" class="client-select">
+                    <option value="">Wybierz klienta...</option>
+                </select>
+
+                <div id="measurementContent" class="measurement-content" style="display: none;">
+                    <div class="tab-header">
+                        <h3>Pomiary: <span id="selectedClientName"></span></h3>
+                        <button id="addMeasurementBtn" class="btn-primary">+ Dodaj pomiar</button>
+                    </div>
+
+                    <!-- Wykres progresu -->
+                    <div class="chart-card">
+                        <h3>Progres wagi</h3>
+                        <canvas id="weightChart"></canvas>
+                    </div>
+
+                    <!-- Lista pomiarów -->
+                    <div id="measurementsList" class="measurements-list">
+                        <!-- Dynamicznie generowane -->
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODALNE OKNA -->
+    
+    <!-- Modal - Dodaj/Edytuj klienta -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="clientModalTitle">Dodaj klienta</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="clientForm">
+                    <input type="hidden" id="clientId">
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Imię *</label>
+                            <input type="text" id="clientFirstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nazwisko *</label>
+                            <input type="text" id="clientLastName" required>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Płeć *</label>
+                            <select id="clientGender" required>
+                                <option value="">Wybierz...</option>
+                                <option value="M">Mężczyzna</option>
+                                <option value="K">Kobieta</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Wiek *</label>
+                            <input type="number" id="clientAge" min="1" max="120" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Telefon</label>
+                        <input type="tel" id="clientPhone">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="clientEmail">
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary cancel-btn">Anuluj</button>
+                        <button type="submit" class="btn-primary">Zapisz</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal - Szczegóły klienta -->
+    <div id="clientDetailsModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 id="clientDetailsName"></h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="client-details">
+                    <!-- Dane osobowe -->
+                    <div class="details-section">
+                        <h3>Dane osobowe</h3>
+                        <div class="details-grid" id="clientPersonalData"></div>
+                        <button id="editClientBtn" class="btn-secondary">Edytuj dane</button>
+                    </div>
+
+                    <!-- Usługi -->
+                    <div class="details-section">
+                        <div class="section-header">
+                            <h3>Usługi</h3>
+                            <button id="addServiceBtn" class="btn-primary">+ Dodaj usługę</button>
+                        </div>
+                        <div id="clientServices" class="services-list"></div>
+                    </div>
+
+                    <!-- Notatki -->
+                    <div class="details-section">
+                        <div class="section-header">
+                            <h3>Notatki</h3>
+                            <button id="addClientNoteBtn" class="btn-primary">+ Dodaj notatkę</button>
+                        </div>
+                        <div id="clientNotes" class="notes-list"></div>
+                    </div>
+
+                    <!-- Pliki -->
+                    <div class="details-section">
+                        <div class="section-header">
+                            <h3>Pliki</h3>
+                            <button id="uploadFileBtn" class="btn-primary">+ Dodaj plik</button>
+                        </div>
+                        <div id="clientFiles" class="files-list"></div>
+                    </div>
+
+                    <!-- Akcje -->
+                    <div class="details-actions">
+                        <button id="deleteClientBtn" class="btn-danger">Usuń klienta</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal - Dodaj usługę -->
+    <div id="serviceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dodaj usługę</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="serviceForm">
+                    <div class="form-group">
+                        <label>Typ usługi *</label>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" name="serviceType" value="dieta"> 🥗 Dieta
+                            </label>
+                            <label>
+                                <input type="checkbox" name="serviceType" value="plan_treningowy"> 💪 Plan treningowy
+                            </label>
+                            <label>
+                                <input type="checkbox" name="serviceType" value="prowadzenie"> 📊 Prowadzenie
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Data rozpoczęcia *</label>
+                        <input type="date" id="serviceStartDate" required>
+                    </div>
+
+                    <div class="form-group" id="endDateGroup" style="display: none;">
+                        <label>Data zakończenia *</label>
+                        <input type="date" id="serviceEndDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status *</label>
+                        <select id="serviceStatus" required>
+                            <option value="aktywny">Aktywny</option>
+                            <option value="nieoplacony">Nieopłacony</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Uwagi</label>
+                        <textarea id="serviceNotes" rows="3"></textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary cancel-btn">Anuluj</button>
+                        <button type="submit" class="btn-primary">Dodaj usługi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal - Dodaj notatkę -->
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dodaj notatkę</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="noteForm">
+                    <div class="form-group">
+                        <label>Klient</label>
+                        <select id="noteClientSelect">
+                            <option value="">Ogólna notatka</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Treść notatki *</label>
+                        <textarea id="noteContent" rows="6" required></textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary cancel-btn">Anuluj</button>
+                        <button type="submit" class="btn-primary">Zapisz</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal - Dodaj pomiar -->
+    <div id="measurementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dodaj pomiar</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="measurementForm">
+                    <div class="form-group">
+                        <label>Data pomiaru *</label>
+                        <input type="date" id="measurementDate" required>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Waga (kg)</label>
+                            <input type="number" step="0.1" id="measWeight">
+                        </div>
+                        <div class="form-group">
+                            <label>Klatka (cm)</label>
+                            <input type="number" step="0.1" id="measChest">
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Barki (cm)</label>
+                            <input type="number" step="0.1" id="measShoulders">
+                        </div>
+                        <div class="form-group">
+                            <label>Szyja (cm)</label>
+                            <input type="number" step="0.1" id="measNeck">
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Biceps P (cm)</label>
+                            <input type="number" step="0.1" id="measBicepsR">
+                        </div>
+                        <div class="form-group">
+                            <label>Biceps L (cm)</label>
+                            <input type="number" step="0.1" id="measBicepsL">
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Przedramię P (cm)</label>
+                            <input type="number" step="0.1" id="measForearmR">
+                        </div>
+                        <div class="form-group">
+                            <label>Przedramię L (cm)</label>
+                            <input type="number" step="0.1" id="measForearmL">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Talia (cm)</label>
+                        <input type="number" step="0.1" id="measWaist">
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Udo P (cm)</label>
+                            <input type="number" step="0.1" id="measThighR">
+                        </div>
+                        <div class="form-group">
+                            <label>Udo L (cm)</label>
+                            <input type="number" step="0.1" id="measThighL">
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Łydka P (cm)</label>
+                            <input type="number" step="0.1" id="measCalfR">
+                        </div>
+                        <div class="form-group">
+                            <label>Łydka L (cm)</label>
+                            <input type="number" step="0.1" id="measCalfL">
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary cancel-btn">Anuluj</button>
+                        <button type="submit" class="btn-primary">Zapisz pomiar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal - Upload pliku -->
+    <div id="fileUploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dodaj plik</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="fileUploadForm">
+                    <div class="form-group">
+                        <label>Typ pliku</label>
+                        <select id="fileType" required>
+                            <option value="dieta">Dieta (PDF)</option>
+                            <option value="plan">Plan treningowy (PDF)</option>
+                            <option value="zdjecie">Zdjęcie</option>
+                            <option value="inny">Inny</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Plik *</label>
+                        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" required>
+                        <small>Dozwolone: PDF, JPG, PNG (max 10MB)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Opis</label>
+                        <input type="text" id="fileDescription" placeholder="Opcjonalny opis pliku">
+                    </div>
+
+                    <div class="upload-progress" id="uploadProgress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <span id="progressText">0%</span>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary cancel-btn">Anuluj</button>
+                        <button type="submit" class="btn-primary">Prześlij</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading spinner -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+
+    <!-- App scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/clients.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/notes.js"></script>
+    <script src="js/measurements.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
