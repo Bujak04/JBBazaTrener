@@ -121,19 +121,34 @@ function initializeModals() {
 // Inicjalizacja formularzy
 function initializeForms() {
     // Formularz klienta
-    document.getElementById('clientForm').addEventListener('submit', handleClientSubmit);
+    const clientForm = document.getElementById('clientForm');
+    if (clientForm) {
+        clientForm.addEventListener('submit', handleClientSubmit);
+    }
     
     // Formularz notatki
-    document.getElementById('noteForm').addEventListener('submit', handleNoteSubmit);
+    const noteForm = document.getElementById('noteForm');
+    if (noteForm) {
+        noteForm.addEventListener('submit', handleNoteSubmit);
+    }
     
     // Formularz pomiaru
-    document.getElementById('measurementForm').addEventListener('submit', handleMeasurementSubmit);
+    const measurementForm = document.getElementById('measurementForm');
+    if (measurementForm) {
+        measurementForm.addEventListener('submit', handleMeasurementSubmit);
+    }
     
     // Formularz usługi
-    document.getElementById('serviceForm').addEventListener('submit', handleServiceSubmit);
+    const serviceForm = document.getElementById('serviceForm');
+    if (serviceForm) {
+        serviceForm.addEventListener('submit', handleServiceSubmit);
+    }
     
-    // Formularz upload pliku
-    document.getElementById('fileUploadForm').addEventListener('submit', handleFileUpload);
+    // Formularz upload pliku - pomijamy jeśli nie istnieje (Storage wyłączony)
+    const fileUploadForm = document.getElementById('fileUploadForm');
+    if (fileUploadForm && typeof handleFileUpload === 'function') {
+        fileUploadForm.addEventListener('submit', handleFileUpload);
+    }
     
     // Checkbox prowadzenie - pokazuj daty
     const serviceCheckboxes = document.querySelectorAll('input[name="serviceType"]');

@@ -395,3 +395,7 @@ function renderWeightChart(client) {
 }
 
 console.log('Measurements.js loaded');
+// Eksporty globalne
+window.handleMeasurementSubmit = handleMeasurementSubmit;
+window.loadClientMeasurements = loadClientMeasurements;
+window.deleteMeasurement = deleteMeasurement;

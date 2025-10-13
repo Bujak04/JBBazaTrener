@@ -432,8 +432,11 @@ function getFileIcon(type) {
     return icons[type] || '📎';
 }
 
-console.log('Clients.js loaded');
 // Eksporty globalne
+window.handleClientSubmit = handleClientSubmit;
 window.renderClientsList = renderClientsList;
 window.openClientDetails = openClientDetails;
+window.openClientModal = openClientModal;
 window.deleteClient = deleteClient;
+
+console.log('✅ Clients.js loaded');
