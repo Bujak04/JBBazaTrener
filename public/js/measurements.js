@@ -27,12 +27,13 @@ function fetchMeasurements() {
 }
 
 // Function to add a new measurement
-addMeasurementForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const newMeasurement = {
-        data: new Date().toLocaleDateString(),
-        waga: addMeasurementForm.waga.value,
-        klatka: addMeasurementForm.klatka.value,
+if (addMeasurementForm) {
+    addMeasurementForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newMeasurement = {
+            data: new Date().toLocaleDateString(),
+            waga: addMeasurementForm.waga.value,
+            klatka: addMeasurementForm.klatka.value,
         // Add other measurement fields as necessary
     };
 
@@ -45,6 +46,7 @@ addMeasurementForm.addEventListener('submit', (e) => {
         console.error('Error adding measurement: ', error);
     });
 });
+}
 
 // Wypełnianie listy klientów w select
 function updateMeasurementClientSelect() {

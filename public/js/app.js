@@ -1,7 +1,6 @@
 // Main logic for the personal trainer panel application
 
 let currentClient = null;
-let allClients = [];
 
 // Inicjalizacja aplikacji
 function initializeApp() {
@@ -41,53 +40,75 @@ function initializeApp() {
 
 // System zakładek
 function initializeTabs() {
+    console.log('🔧 INITIALIZING TABS...');
     const tabButtons = document.querySelectorAll('.tab-btn');
     
-    console.log('Initializing tabs, found buttons:', tabButtons.length);
+    console.log('Found tab buttons:', tabButtons.length);
     
-    tabButtons.forEach(button => {
-        // Usuń stare event listenery klonując element
-        const newButton = button.cloneNode(true);
-        button.parentNode.replaceChild(newButton, button);
+    if (tabButtons.length === 0) {
+        console.error('❌ NO TAB BUTTONS FOUND!');
+        return;
+    }
+    
+    tabButtons.forEach((button, index) => {
+        console.log(`Adding listener to button ${index}:`, button.dataset.tab);
         
-        newButton.addEventListener('click', (e) => {
+        button.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
             
-            const tabName = newButton.dataset.tab;
+            const tabName = this.dataset.tab;
             
-            console.log('Tab clicked:', tabName);
+            console.log('✅ TAB CLICKED:', tabName);
             
             // Usuń active ze wszystkich zakładek
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
             // Dodaj active do wybranej zakładki
-            newButton.classList.add('active');
+            this.classList.add('active');
             const targetTab = document.getElementById(`${tabName}Tab`);
             
             if (targetTab) {
                 targetTab.classList.add('active');
-                console.log('Activated tab:', tabName);
+                console.log('✅ Activated tab:', tabName);
             } else {
-                console.error('Tab not found:', `${tabName}Tab`);
+                console.error('❌ Tab not found:', `${tabName}Tab`);
             }
             
             // Odśwież dane w zakładce
-            if (tabName === 'home' && typeof window.updateDashboard === 'function') {
-                window.updateDashboard();
+            try {
+                if (tabName === 'home') {
+                    console.log('Calling updateDashboard...');
+                    if (typeof window.updateDashboard === 'function') {
+                        window.updateDashboard();
+                    }
+                }
+                if (tabName === 'clients') {
+                    console.log('Calling renderClientsList...');
+                    if (typeof window.renderClientsList === 'function') {
+                        window.renderClientsList();
+                    }
+                }
+                if (tabName === 'services') {
+                    console.log('Calling updateServicesTab...');
+                    if (typeof window.updateServicesTab === 'function') {
+                        window.updateServicesTab();
+                    }
+                }
+                if (tabName === 'notes') {
+                    console.log('Calling renderNotesList...');
+                    if (typeof window.renderNotesList === 'function') {
+                        window.renderNotesList();
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error refreshing tab data:', error);
             }
-            if (tabName === 'clients' && typeof window.renderClientsList === 'function') {
-                window.renderClientsList();
-            }
-            if (tabName === 'services' && typeof window.updateServicesTab === 'function') {
-                window.updateServicesTab();
-            }
-            if (tabName === 'notes' && typeof window.renderNotesList === 'function') {
-                window.renderNotesList();
-            }
-        });
+        };
     });
+    
+    console.log('✅ TABS INITIALIZED!');
 }
 
 // System modali
@@ -158,15 +179,28 @@ function initializeForms() {
         fileUploadForm.addEventListener('submit', handleFileUpload);
     }
     
-    // Checkbox prowadzenie - pokazuj daty
+    // Checkbox prowadzenie - ukryj datę zakończenia dla prowadzenia
     const serviceCheckboxes = document.querySelectorAll('input[name="serviceType"]');
     serviceCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', () => {
             const prowadzenieChecked = Array.from(serviceCheckboxes)
                 .find(cb => cb.value === 'prowadzenie' && cb.checked);
             
+            const otherServicesChecked = Array.from(serviceCheckboxes)
+                .filter(cb => cb.value !== 'prowadzenie' && cb.checked).length > 0;
+            
+            // Pokaż datę zakończenia tylko jeśli wybrano dietę lub plan treningowy
+            // (nie pokazuj dla samego prowadzenia)
             document.getElementById('endDateGroup').style.display = 
-                prowadzenieChecked ? 'block' : 'none';
+                otherServicesChecked ? 'block' : 'none';
+            
+            // Jeśli prowadzenie jest jedyną wybraną usługą, ukryj pole daty zakończenia
+            const endDateInput = document.getElementById('serviceEndDate');
+            if (endDateInput && prowadzenieChecked && !otherServicesChecked) {
+                endDateInput.removeAttribute('required');
+            } else if (endDateInput && otherServicesChecked) {
+                endDateInput.setAttribute('required', 'required');
+            }
         });
     });
 }

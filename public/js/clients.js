@@ -179,6 +179,43 @@ function renderClientsList() {
     `).join('');
 }
 
+// Otwieranie modala dodawania/edycji klienta
+function openClientModal(clientId = null) {
+    const modal = document.getElementById('clientModal');
+    const form = document.getElementById('clientForm');
+    const title = document.getElementById('clientModalTitle');
+    
+    if (!modal || !form) {
+        console.error('Client modal elements not found');
+        return;
+    }
+    
+    form.reset();
+    
+    if (clientId) {
+        // Edycja klienta
+        title.textContent = 'Edytuj klienta';
+        document.getElementById('clientId').value = clientId;
+        
+        // Załaduj dane klienta
+        const client = window.allClients.find(c => c.id === clientId);
+        if (client) {
+            document.getElementById('clientFirstName').value = client.firstName || '';
+            document.getElementById('clientLastName').value = client.lastName || '';
+            document.getElementById('clientGender').value = client.gender || 'M';
+            document.getElementById('clientAge').value = client.age || '';
+            document.getElementById('clientPhone').value = client.phone || '';
+            document.getElementById('clientEmail').value = client.email || '';
+        }
+    } else {
+        // Nowy klient
+        title.textContent = 'Dodaj klienta';
+        document.getElementById('clientId').value = '';
+    }
+    
+    modal.classList.add('active');
+}
+
 // Otwieranie szczegółów klienta
 async function openClientDetails(clientId) {
     showLoading(true);
@@ -252,6 +289,9 @@ function renderClientDetails(client) {
     // Notatki
     renderClientNotes(client.id);
     
+    // Pomiary
+    renderClientMeasurements(client);
+    
     // Pliki
     renderClientFiles(client);
 }
@@ -282,6 +322,7 @@ function renderClientServices(client) {
                     <button class="btn-secondary" onclick="extendService('${client.id}', ${index})">Przedłuż</button>
                     <button class="btn-danger" onclick="endService('${client.id}', ${index})">Zakończ</button>
                 ` : ''}
+                <button class="btn-danger" onclick="deleteService('${client.id}', ${index})" style="margin-left: 5px;">Usuń</button>
             </div>
         </div>
     `).join('');
@@ -320,6 +361,73 @@ async function renderClientNotes(clientId) {
     } catch (error) {
         console.error('Error loading client notes:', error);
         container.innerHTML = '<p style="color: var(--danger);">Błąd ładowania notatek</p>';
+    }
+}
+
+// Renderowanie pomiarów klienta
+function renderClientMeasurements(client) {
+    const container = document.getElementById('clientMeasurements');
+    const measurements = client.measurements || [];
+    
+    if (measurements.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-gray);">Brak pomiarów</p>';
+        return;
+    }
+    
+    // Sortuj od najnowszych, pokaż tylko 3 ostatnie
+    const sortedMeasurements = [...measurements].sort((a, b) => {
+        const dateA = a.date.toDate ? a.date.toDate() : new Date(a.date);
+        const dateB = b.date.toDate ? b.date.toDate() : new Date(b.date);
+        return dateB - dateA;
+    }).slice(0, 3);
+    
+    container.innerHTML = sortedMeasurements.map((m, index) => `
+        <div class="measurement-card">
+            <div class="measurement-header">
+                <span class="measurement-date">${formatDate(m.date)}</span>
+            </div>
+            <div class="measurement-grid">
+                ${m.weight ? `
+                    <div class="measurement-item">
+                        <span class="measurement-label">Waga</span>
+                        <span class="measurement-value">${m.weight} kg</span>
+                    </div>
+                ` : ''}
+                ${m.chest ? `
+                    <div class="measurement-item">
+                        <span class="measurement-label">Klatka</span>
+                        <span class="measurement-value">${m.chest} cm</span>
+                    </div>
+                ` : ''}
+                ${m.waist ? `
+                    <div class="measurement-item">
+                        <span class="measurement-label">Talia</span>
+                        <span class="measurement-value">${m.waist} cm</span>
+                    </div>
+                ` : ''}
+                ${m.bicepsL || m.bicepsR ? `
+                    <div class="measurement-item">
+                        <span class="measurement-label">Biceps L/P</span>
+                        <span class="measurement-value">${m.bicepsL || '-'} / ${m.bicepsR || '-'} cm</span>
+                    </div>
+                ` : ''}
+                ${m.thighL || m.thighR ? `
+                    <div class="measurement-item">
+                        <span class="measurement-label">Udo L/P</span>
+                        <span class="measurement-value">${m.thighL || '-'} / ${m.thighR || '-'} cm</span>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `).join('');
+    
+    // Dodaj link do wszystkich pomiarów jeśli jest ich więcej niż 3
+    if (measurements.length > 3) {
+        container.innerHTML += `
+            <p style="text-align: center; margin-top: 10px; color: var(--primary-green); cursor: pointer;" onclick="switchTab('measurements')">
+                Zobacz wszystkie pomiary (${measurements.length}) →
+            </p>
+        `;
     }
 }
 
@@ -368,6 +476,22 @@ function setupClientDetailsButtons(client) {
     document.getElementById('addClientNoteBtn').onclick = () => {
         document.getElementById('clientDetailsModal').classList.remove('active');
         openNoteModal(client.id);
+    };
+    
+    // Dodaj pomiar
+    document.getElementById('addClientMeasurementBtn').onclick = () => {
+        document.getElementById('clientDetailsModal').classList.remove('active');
+        // Otwórz zakładkę pomiary i automatycznie wybierz klienta
+        switchTab('measurements');
+        setTimeout(() => {
+            if (window.updateMeasurementClientSelect) {
+                window.updateMeasurementClientSelect();
+                document.getElementById('measurementClientSelect').value = client.id;
+                if (window.loadClientMeasurements) {
+                    window.loadClientMeasurements(client);
+                }
+            }
+        }, 100);
     };
     
     // Upload pliku

@@ -120,21 +120,31 @@ async function handleServiceSubmit(e) {
         const clientData = clientDoc.data();
         
         const now = new Date();
-        const newServices = selectedTypes.map(type => ({
-            type: type,
-            startDate: firebase.firestore.Timestamp.fromDate(new Date(startDate)),
-            endDate: (type === 'prowadzenie' && endDate) ? 
-                firebase.firestore.Timestamp.fromDate(new Date(endDate)) : null,
-            status: status,
-            notes: notes,
-            payment: {
-                isPaid: false,
-                amount: 0,
-                dueDate: null,
-                paidDate: null
-            },
-            createdAt: firebase.firestore.Timestamp.fromDate(now)
-        }));
+        const newServices = selectedTypes.map(type => {
+            const service = {
+                type: type,
+                startDate: firebase.firestore.Timestamp.fromDate(new Date(startDate)),
+                status: status,
+                notes: notes,
+                payment: {
+                    isPaid: false,
+                    amount: 0,
+                    dueDate: null,
+                    paidDate: null
+                },
+                createdAt: firebase.firestore.Timestamp.fromDate(now)
+            };
+            
+            // Dodaj datę zakończenia tylko dla diety i planu treningowego
+            // Prowadzenie nie ma daty zakończenia (ciągłe)
+            if (type !== 'prowadzenie' && endDate) {
+                service.endDate = firebase.firestore.Timestamp.fromDate(new Date(endDate));
+            } else if (type === 'prowadzenie') {
+                service.endDate = null;
+            }
+            
+            return service;
+        });
         
         const updatedServices = [...(clientData.services || []), ...newServices];
         
@@ -297,6 +307,65 @@ async function endService(clientId, serviceIndex) {
     }
 }
 
+// Usuwanie usługi
+async function deleteService(clientId, serviceIndex) {
+    if (!confirm('Czy na pewno chcesz usunąć tę usługę? Ta operacja jest nieodwracalna.')) {
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        const clientRef = window.db.collection('clients').doc(clientId);
+        const clientDoc = await clientRef.get();
+        
+        if (!clientDoc.exists) {
+            showToast('Nie znaleziono klienta', 'error');
+            showLoading(false);
+            return;
+        }
+        
+        const clientData = clientDoc.data();
+        const services = [...(clientData.services || [])];
+        
+        if (!services[serviceIndex]) {
+            showToast('Nie znaleziono usługi', 'error');
+            showLoading(false);
+            return;
+        }
+        
+        // Usuń usługę z tablicy
+        services.splice(serviceIndex, 1);
+        
+        // Przelicz nowy status klienta
+        const newStatus = calculateClientStatus(services);
+        
+        await clientRef.update({
+            services: services,
+            status: newStatus,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        showToast('Usługa została usunięta', 'success');
+        
+        // Odśwież widok szczegółów klienta jeśli jest otwarty
+        if (window.currentClient && window.currentClient.id === clientId) {
+            openClientDetails(clientId);
+        }
+        
+        // Odśwież zakładkę usług jeśli jest aktywna
+        if (document.getElementById('services-tab').classList.contains('active')) {
+            updateServicesTab();
+        }
+        
+    } catch (error) {
+        console.error('Error deleting service:', error);
+        showToast('Błąd usuwania usługi: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
 // Obliczanie statusu klienta na podstawie usług
 function calculateClientStatus(services) {
     if (!services || services.length === 0) {
@@ -448,6 +517,7 @@ window.updateServicesTab = updateServicesTab;
 window.openServiceModal = openServiceModal;
 window.extendService = extendService;
 window.endService = endService;
+window.deleteService = deleteService;
 window.handleServiceSubmit = handleServiceSubmit;
 
 console.log('Services.js loaded');

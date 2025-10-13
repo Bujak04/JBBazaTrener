@@ -22,6 +22,7 @@
     <div id="loginPage" class="page active">
         <div class="login-container">
             <div class="login-box">
+                <img src="assets/images/logo.png" alt="Logo" class="login-logo">
                 <h1>Jakub Bujakiewicz</h1>
                 <h2>Trener Personalny</h2>
                 <div class="login-form">
@@ -39,7 +40,10 @@
         <!-- Nagłówek -->
         <header class="header">
             <div class="header-content">
-                <h1>Jakub Bujakiewicz - Panel Trenera</h1>
+                <div class="header-logo">
+                    <img src="assets/images/logo.png" alt="Logo" class="header-logo-img">
+                    <h1>Jakub Bujakiewicz - Panel Trenera</h1>
+                </div>
                 <div class="header-actions">
                     <button id="notificationsBtn" class="icon-btn">
                         <span class="notification-badge" id="notificationBadge">0</span>
@@ -337,6 +341,15 @@
                             <button id="addClientNoteBtn" class="btn-primary">+ Dodaj notatkę</button>
                         </div>
                         <div id="clientNotes" class="notes-list"></div>
+                    </div>
+
+                    <!-- Pomiary -->
+                    <div class="details-section">
+                        <div class="section-header">
+                            <h3>Pomiary</h3>
+                            <button id="addClientMeasurementBtn" class="btn-primary">+ Dodaj pomiar</button>
+                        </div>
+                        <div id="clientMeasurements" class="measurements-list"></div>
                     </div>
 
                     <!-- Pliki -->

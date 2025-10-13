@@ -71,6 +71,13 @@ body {
     text-align: center;
 }
 
+.login-logo {
+    max-width: 150px;
+    height: auto;
+    margin-bottom: 20px;
+    border-radius: 10px;
+}
+
 .login-box h1 {
     color: var(--primary-green);
     font-size: 32px;
@@ -220,6 +227,18 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-logo-img {
+    height: 50px;
+    width: auto;
+    border-radius: 8px;
 }
 
 .header h1 {
