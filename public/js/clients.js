@@ -103,7 +103,7 @@ async function handleClientSubmit(e) {
         } else {
             // Dodawanie nowego klienta
             clientData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            clientData.status = 'nieaktywny';
+            clientData.status = 'aktywny';
             clientData.services = [];
             clientData.measurements = [];
             clientData.files = [];

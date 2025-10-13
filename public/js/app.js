@@ -100,6 +100,9 @@ function initializeTabs() {
                     if (typeof window.updateServicesTab === 'function') {
                         window.updateServicesTab();
                     }
+                    if (typeof window.loadPricing === 'function') {
+                        window.loadPricing();
+                    }
                 }
                 if (tabName === 'finances') {
                     console.log('Calling loadPayments...');

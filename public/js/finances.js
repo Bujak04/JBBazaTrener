@@ -231,9 +231,84 @@ async function deletePayment(paymentId) {
     }
 }
 
-// Edycja płatności
-function editPayment(paymentId) {
-    showToast('Funkcja edycji w przygotowaniu', 'info');
+// Edycja płatności (zmiana statusu)
+async function editPayment(paymentId) {
+    showLoading(true);
+    
+    try {
+        const paymentDoc = await window.db.collection('payments').doc(paymentId).get();
+        
+        if (!paymentDoc.exists) {
+            showToast('Nie znaleziono płatności', 'error');
+            return;
+        }
+        
+        const payment = paymentDoc.data();
+        const currentStatus = payment.status;
+        
+        const statusOptions = [
+            { value: 'oczekujace', label: '⏳ Oczekujące' },
+            { value: 'oplacone', label: '✅ Opłacone' },
+            { value: 'zaleglosc', label: '❌ Zaległość' }
+        ];
+        
+        const optionsHtml = statusOptions.map(opt => 
+            `<option value="${opt.value}" ${currentStatus === opt.value ? 'selected' : ''}>${opt.label}</option>`
+        ).join('');
+        
+        const result = await new Promise((resolve) => {
+            const modalHtml = `
+                <div class="modal active" id="editPaymentStatusModal" style="z-index: 10000;">
+                    <div class="modal-content" style="max-width: 400px;">
+                        <div class="modal-header">
+                            <h2>Zmień status płatności</h2>
+                            <button class="close-btn" onclick="document.getElementById('editPaymentStatusModal').remove(); ">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p style="margin-bottom: 15px; color: var(--text-gray);">
+                                <strong>${payment.clientName}</strong><br>
+                                ${payment.amount.toFixed(2)} zł
+                            </p>
+                            <div class="form-group">
+                                <label>Nowy status *</label>
+                                <select id="newPaymentStatus" class="form-control" style="padding: 12px; background: var(--bg-dark); border: 2px solid var(--border-color); border-radius: 8px; color: var(--text-white); font-size: 16px; width: 100%;">
+                                    ${optionsHtml}
+                                </select>
+                            </div>
+                            <div class="modal-actions">
+                                <button type="button" class="btn-secondary" onclick="document.getElementById('editPaymentStatusModal').remove();">Anuluj</button>
+                                <button type="button" class="btn-primary" id="confirmStatusChange">Zapisz</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            document.getElementById('confirmStatusChange').onclick = () => {
+                const newStatus = document.getElementById('newPaymentStatus').value;
+                document.getElementById('editPaymentStatusModal').remove();
+                resolve(newStatus);
+            };
+        });
+        
+        if (result && result !== currentStatus) {
+            await window.db.collection('payments').doc(paymentId).update({
+                status: result,
+                updatedAt: firebase.firestore.Timestamp.fromDate(new Date())
+            });
+            
+            showToast('Status płatności zaktualizowany', 'success');
+            loadPayments();
+        }
+        
+    } catch (error) {
+        console.error('Error editing payment:', error);
+        showToast('Błąd edycji płatności', 'error');
+    } finally {
+        showLoading(false);
+    }
 }
 
 // Eksporty globalne
