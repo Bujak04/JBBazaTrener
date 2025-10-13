@@ -379,7 +379,25 @@ async function extendService(clientId, serviceIndex) {
             updatedAt: new Date()
         });
         
-        showToast(`Prowadzenie przedłużone o ${days} dni`, 'success');
+        // Automatyczne tworzenie płatności przy przedłużaniu (używa normalnej ceny prowadzenia, nie pierwszej)
+        const prowadzeniePrice = window.servicePricing?.prowadzenie || 0;
+        
+        if (prowadzeniePrice > 0) {
+            const paymentData = {
+                clientId: clientId,
+                clientName: clientData.name || 'Nieznany',
+                amount: prowadzeniePrice,
+                dueDate: firebase.firestore.Timestamp.fromDate(newEndDate),
+                status: 'oczekujace',
+                description: `Przedłużenie prowadzenia o ${days} dni`,
+                createdAt: firebase.firestore.Timestamp.now()
+            };
+            
+            await window.db.collection('payments').add(paymentData);
+            console.log('✅ Utworzono płatność za przedłużenie:', paymentData);
+        }
+        
+        showToast(`Prowadzenie przedłużone o ${days} dni. Dodano płatność: ${prowadzeniePrice} zł`, 'success');
         
         if (window.currentClient && window.currentClient.id === clientId) {
             openClientDetails(clientId);
