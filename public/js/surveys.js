@@ -1,7 +1,230 @@
 // surveys.js - Zarządzanie ankietami dla usług
 
+// Zmienne globalne do przechowywania ID podczas przeglądania
+let currentViewClientId = null;
+let currentViewServiceIndex = null;
+
 // ============================================
-// ANKIETA DIETA
+// PODGLĄD ANKIETY DIETA
+// ============================================
+
+async function viewDietSurvey(clientId, serviceIndex) {
+    currentViewClientId = clientId;
+    currentViewServiceIndex = serviceIndex;
+    
+    const modal = document.getElementById('dietSurveyViewModal');
+    const content = document.getElementById('dietSurveyViewContent');
+    
+    try {
+        const clientDoc = await window.db.collection('clients').doc(clientId).get();
+        
+        if (!clientDoc.exists) {
+            showToast('Nie znaleziono klienta', 'error');
+            return;
+        }
+        
+        const clientData = clientDoc.data();
+        const service = clientData.services?.[serviceIndex];
+        
+        if (!service || !service.survey) {
+            showToast('Brak danych ankiety', 'error');
+            return;
+        }
+        
+        const survey = service.survey;
+        
+        // Wygeneruj HTML z danymi
+        content.innerHTML = `
+            <div class="survey-section">
+                <div class="survey-section-title">📋 Dane Osobowe</div>
+                ${renderSurveyField('Imię i Nazwisko', survey.fullName)}
+                ${renderSurveyField('Płeć', survey.gender)}
+                ${renderSurveyField('Wiek', survey.age)}
+                ${renderSurveyField('Numer telefonu', survey.phone)}
+                ${renderSurveyField('Adres E-Mail', survey.email)}
+            </div>
+            
+            <div class="survey-section">
+                <div class="survey-section-title">🎯 Cele i Aktywność</div>
+                ${renderSurveyField('Cele związane z dietą', survey.goals)}
+                ${renderSurveyField('Poziom aktywności fizycznej', survey.activityLevel)}
+            </div>
+            
+            <div class="survey-section">
+                <div class="survey-section-title">🍽️ Odżywianie</div>
+                ${renderSurveyField('Preferencje i ograniczenia dietetyczne', survey.preferences)}
+                ${renderSurveyField('Posiłki w ciągu dnia', survey.meals)}
+                ${renderSurveyField('Spożycie wody dziennie', survey.waterIntake)}
+                ${renderSurveyField('Preferencje smakowe', survey.tastes)}
+            </div>
+            
+            <div class="survey-section">
+                <div class="survey-section-title">💊 Suplementy</div>
+                ${renderSurveyField('Czy stosujesz suplementy?', survey.usesSupplements)}
+                ${renderSurveyField('Jakie suplementy', survey.supplements)}
+            </div>
+            
+            <div class="survey-section">
+                <div class="survey-section-title">🏥 Zdrowie</div>
+                ${renderSurveyField('Alergie pokarmowe', survey.allergies)}
+                ${renderSurveyField('Choroby przewlekłe', survey.conditions)}
+                ${renderSurveyField('Przyjmowane leki', survey.medications)}
+            </div>
+            
+            <div class="survey-section">
+                <div class="survey-section-title">ℹ️ Dodatkowe Informacje</div>
+                ${renderSurveyField('Inne informacje', survey.otherInfo)}
+            </div>
+            
+            <div class="survey-timestamp">
+                📅 Ankieta wypełniona: ${new Date(survey.completedAt).toLocaleString('pl-PL')}
+            </div>
+        `;
+        
+        modal.style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Error viewing diet survey:', error);
+        showToast('Błąd ładowania ankiety: ' + error.message, 'error');
+    }
+}
+
+function closeDietSurveyView() {
+    const modal = document.getElementById('dietSurveyViewModal');
+    modal.style.display = 'none';
+    currentViewClientId = null;
+    currentViewServiceIndex = null;
+}
+
+function editDietSurveyFromView() {
+    closeDietSurveyView();
+    if (currentViewClientId && currentViewServiceIndex !== null) {
+        openDietSurvey(currentViewClientId, currentViewServiceIndex);
+    }
+}
+
+// ============================================
+// PODGLĄD ANKIETY PLAN TRENINGOWY
+// ============================================
+
+async function viewTrainingSurvey(clientId, serviceIndex) {
+    currentViewClientId = clientId;
+    currentViewServiceIndex = serviceIndex;
+    
+    const modal = document.getElementById('trainingSurveyViewModal');
+    const content = document.getElementById('trainingSurveyViewContent');
+    
+    try {
+        const clientDoc = await window.db.collection('clients').doc(clientId).get();
+        
+        if (!clientDoc.exists) {
+            showToast('Nie znaleziono klienta', 'error');
+            return;
+        }
+        
+        const clientData = clientDoc.data();
+        const service = clientData.services?.[serviceIndex];
+        
+        if (!service || !service.survey) {
+            showToast('Brak danych ankiety', 'error');
+            return;
+        }
+        
+        const survey = service.survey;
+        
+        // Wygeneruj HTML z danymi
+        content.innerHTML = `
+            <div class="survey-section">
+                <div class="survey-section-title">📋 Dane Osobowe</div>
+                ${renderSurveyField('Imię i Nazwisko', survey.fullName)}
+                ${renderSurveyField('Płeć', survey.gender)}
+                ${renderSurveyField('Wiek', survey.age)}
+                ${renderSurveyField('Numer telefonu', survey.phone)}
+                ${renderSurveyField('Adres E-Mail', survey.email)}
+            </div>
+            
+            <div class="survey-section">
+                <div class="survey-section-title">🎯 Cele Treningowe</div>
+                ${renderSurveyField('Główne cele treningowe', survey.goals)}
+                ${renderSurveyField('Oczekiwania względem planu', survey.expectations)}
+            </div>
+            
+            <div class="survey-section">
+                <div class="survey-section-title">💪 Poziom Zaawansowania</div>
+                ${renderSurveyField('Poziom zaawansowania', survey.level)}
+                ${renderSurveyField('Skala 1-10', survey.levelScale)}
+                ${renderSurveyField('Jak długo ćwiczysz regularnie', survey.experience)}
+                ${renderSurveyField('Czy korzystałeś z planów treningowych', survey.hadPlan)}
+            </div>
+            
+            <div class="survey-section">
+                <div class="survey-section-title">🏋️ Sprzęt i Preferencje</div>
+                ${renderSurveyField('Dostępny sprzęt', survey.equipment)}
+                ${renderSurveyField('Specjalistyczne maszyny', survey.machines)}
+                ${renderSurveyField('Preferencje (masa ciała vs sprzęt)', survey.preference)}
+                ${renderSurveyField('Typ treningu (siłowe/cardio/mieszane)', survey.type)}
+            </div>
+            
+            <div class="survey-section">
+                <div class="survey-section-title">⏰ Czas na Trening</div>
+                ${renderSurveyField('Dni w tygodniu', survey.daysPerWeek)}
+                ${renderSurveyField('Czas na jeden trening', survey.duration)}
+            </div>
+            
+            <div class="survey-section">
+                <div class="survey-section-title">🏥 Zdrowie i Ograniczenia</div>
+                ${renderSurveyField('Kontuzje lub problemy zdrowotne', survey.injuries)}
+                ${renderSurveyField('Przyjmowane leki', survey.medications)}
+                ${renderSurveyField('Ograniczenia zalecone przez lekarza', survey.restrictions)}
+            </div>
+            
+            <div class="survey-section">
+                <div class="survey-section-title">ℹ️ Dodatkowe Informacje</div>
+                ${renderSurveyField('Inne informacje', survey.otherInfo)}
+            </div>
+            
+            <div class="survey-timestamp">
+                📅 Ankieta wypełniona: ${new Date(survey.completedAt).toLocaleString('pl-PL')}
+            </div>
+        `;
+        
+        modal.style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Error viewing training survey:', error);
+        showToast('Błąd ładowania ankiety: ' + error.message, 'error');
+    }
+}
+
+function closeTrainingSurveyView() {
+    const modal = document.getElementById('trainingSurveyViewModal');
+    modal.style.display = 'none';
+    currentViewClientId = null;
+    currentViewServiceIndex = null;
+}
+
+function editTrainingSurveyFromView() {
+    closeTrainingSurveyView();
+    if (currentViewClientId && currentViewServiceIndex !== null) {
+        openTrainingSurvey(currentViewClientId, currentViewServiceIndex);
+    }
+}
+
+// Helper function do renderowania pól
+function renderSurveyField(label, value) {
+    const isEmpty = !value || value.trim() === '';
+    return `
+        <div class="survey-field">
+            <div class="survey-field-label">${label}</div>
+            <div class="survey-field-value ${isEmpty ? 'empty' : ''}">
+                ${isEmpty ? 'Nie wypełniono' : value}
+            </div>
+        </div>
+    `;
+}
+
+// ============================================
+// ANKIETA DIETA - EDYCJA
 // ============================================
 
 function openDietSurvey(clientId, serviceIndex) {
@@ -300,9 +523,44 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    
+    // Modale podglądu
+    const dietViewModal = document.getElementById('dietSurveyViewModal');
+    if (dietViewModal) {
+        const closeBtn = dietViewModal.querySelector('.close-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeDietSurveyView);
+        }
+        
+        dietViewModal.addEventListener('click', (e) => {
+            if (e.target === dietViewModal) {
+                closeDietSurveyView();
+            }
+        });
+    }
+    
+    const trainingViewModal = document.getElementById('trainingSurveyViewModal');
+    if (trainingViewModal) {
+        const closeBtn = trainingViewModal.querySelector('.close-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeTrainingSurveyView);
+        }
+        
+        trainingViewModal.addEventListener('click', (e) => {
+            if (e.target === trainingViewModal) {
+                closeTrainingSurveyView();
+            }
+        });
+    }
 });
 
 // Eksport funkcji
+window.viewDietSurvey = viewDietSurvey;
+window.closeDietSurveyView = closeDietSurveyView;
+window.editDietSurveyFromView = editDietSurveyFromView;
+window.viewTrainingSurvey = viewTrainingSurvey;
+window.closeTrainingSurveyView = closeTrainingSurveyView;
+window.editTrainingSurveyFromView = editTrainingSurveyFromView;
 window.openDietSurvey = openDietSurvey;
 window.closeDietSurvey = closeDietSurvey;
 window.openTrainingSurvey = openTrainingSurvey;

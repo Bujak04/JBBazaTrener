@@ -335,16 +335,34 @@ function renderClientServices(client) {
             </div>
             <div class="service-actions">
                 <span class="client-status status-${service.status}">${getStatusLabel(service.status)}</span>
-                ${service.type === 'dieta' ? `
-                    <button class="btn-secondary" onclick="openDietSurvey('${client.id}', ${index})" style="margin-left: 5px;">
-                        ${service.survey ? '📝 Edytuj ankietę' : '📋 Wypełnij ankietę'}
-                    </button>
-                ` : ''}
-                ${service.type === 'plan_treningowy' ? `
-                    <button class="btn-secondary" onclick="openTrainingSurvey('${client.id}', ${index})" style="margin-left: 5px;">
-                        ${service.survey ? '📝 Edytuj ankietę' : '📋 Wypełnij ankietę'}
-                    </button>
-                ` : ''}
+                ${service.type === 'dieta' ? (
+                    service.survey ? `
+                        <button class="btn-primary" onclick="viewDietSurvey('${client.id}', ${index})" style="margin-left: 5px;">
+                            📊 Pokaż dane
+                        </button>
+                        <button class="btn-secondary" onclick="openDietSurvey('${client.id}', ${index})" style="margin-left: 5px;">
+                            ✏️ Edytuj
+                        </button>
+                    ` : `
+                        <button class="btn-secondary" onclick="openDietSurvey('${client.id}', ${index})" style="margin-left: 5px;">
+                            📋 Wypełnij ankietę
+                        </button>
+                    `
+                ) : ''}
+                ${service.type === 'plan_treningowy' ? (
+                    service.survey ? `
+                        <button class="btn-primary" onclick="viewTrainingSurvey('${client.id}', ${index})" style="margin-left: 5px;">
+                            📊 Pokaż dane
+                        </button>
+                        <button class="btn-secondary" onclick="openTrainingSurvey('${client.id}', ${index})" style="margin-left: 5px;">
+                            ✏️ Edytuj
+                        </button>
+                    ` : `
+                        <button class="btn-secondary" onclick="openTrainingSurvey('${client.id}', ${index})" style="margin-left: 5px;">
+                            📋 Wypełnij ankietę
+                        </button>
+                    `
+                ) : ''}
                 ${service.type === 'prowadzenie' && service.status === 'aktywny' ? `
                     <button class="btn-secondary" onclick="extendService('${client.id}', ${index})">Przedłuż</button>
                     <button class="btn-danger" onclick="endService('${client.id}', ${index})">Zakończ</button>

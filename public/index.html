@@ -797,6 +797,44 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <!-- Firebase SDK -->
+    <!-- Modal - Podgląd Ankiety Dieta -->
+    <div id="dietSurveyViewModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📊 Dane Ankiety - Dieta</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="dietSurveyViewContent" class="survey-view-content">
+                    <!-- Dane będą wczytane dynamicznie -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeDietSurveyView()">Zamknij</button>
+                    <button type="button" class="btn-primary" onclick="editDietSurveyFromView()">✏️ Edytuj ankietę</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal - Podgląd Ankiety Plan Treningowy -->
+    <div id="trainingSurveyViewModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📊 Dane Ankiety - Plan Treningowy</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="trainingSurveyViewContent" class="survey-view-content">
+                    <!-- Dane będą wczytane dynamicznie -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeTrainingSurveyView()">Zamknij</button>
+                    <button type="button" class="btn-primary" onclick="editTrainingSurveyFromView()">✏️ Edytuj ankietę</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal - Ankieta Dieta -->
     <div id="dietSurveyModal" class="modal">
         <div class="modal-content modal-large">

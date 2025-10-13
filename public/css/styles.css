@@ -1426,3 +1426,67 @@ body {
     color: var(--text-dark-gray);
     font-size: 12px;
 }
+
+/* ============================================
+   WIDOK ANKIETY (READ-ONLY)
+   ============================================ */
+.survey-view-content {
+    padding: 10px 0;
+}
+
+.survey-section {
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.survey-section-title {
+    color: var(--primary-green);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.survey-field {
+    margin-bottom: 15px;
+    padding: 12px;
+    background: var(--bg-dark);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-green);
+}
+
+.survey-field-label {
+    color: var(--text-gray);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+.survey-field-value {
+    color: var(--text-white);
+    font-size: 15px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.survey-field-value.empty {
+    color: var(--text-dark-gray);
+    font-style: italic;
+}
+
+.survey-timestamp {
+    text-align: center;
+    color: var(--text-gray);
+    font-size: 13px;
+    padding: 15px;
+    background: var(--bg-hover);
+    border-radius: 8px;
+    margin-top: 20px;
+}
