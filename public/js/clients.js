@@ -331,9 +331,20 @@ function renderClientServices(client) {
                     ${service.endDate ? ` • Koniec: ${formatDate(service.endDate)}` : ''}
                 </div>
                 ${service.notes ? `<div style="color: var(--text-gray); font-size: 13px; margin-top: 5px;">${service.notes}</div>` : ''}
+                ${service.survey ? `<div style="color: var(--primary-green); font-size: 12px; margin-top: 5px;">✅ Ankieta wypełniona (${new Date(service.survey.completedAt).toLocaleDateString('pl-PL')})</div>` : ''}
             </div>
             <div class="service-actions">
                 <span class="client-status status-${service.status}">${getStatusLabel(service.status)}</span>
+                ${service.type === 'dieta' ? `
+                    <button class="btn-secondary" onclick="openDietSurvey('${client.id}', ${index})" style="margin-left: 5px;">
+                        ${service.survey ? '📝 Edytuj ankietę' : '📋 Wypełnij ankietę'}
+                    </button>
+                ` : ''}
+                ${service.type === 'plan_treningowy' ? `
+                    <button class="btn-secondary" onclick="openTrainingSurvey('${client.id}', ${index})" style="margin-left: 5px;">
+                        ${service.survey ? '📝 Edytuj ankietę' : '📋 Wypełnij ankietę'}
+                    </button>
+                ` : ''}
                 ${service.type === 'prowadzenie' && service.status === 'aktywny' ? `
                     <button class="btn-secondary" onclick="extendService('${client.id}', ${index})">Przedłuż</button>
                     <button class="btn-danger" onclick="endService('${client.id}', ${index})">Zakończ</button>

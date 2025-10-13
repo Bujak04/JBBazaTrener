@@ -797,6 +797,274 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <!-- Firebase SDK -->
+    <!-- Modal - Ankieta Dieta -->
+    <div id="dietSurveyModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📋 Ankieta - Dieta</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dietSurveyForm">
+                    <input type="hidden" id="dietSurveyClientId">
+                    <input type="hidden" id="dietSurveyServiceIndex">
+                    
+                    <div class="form-group">
+                        <label>Imię i Nazwisko *</label>
+                        <input type="text" id="diet_fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Płeć *</label>
+                        <select id="diet_gender" required>
+                            <option value="">Wybierz...</option>
+                            <option value="Mężczyzna">Mężczyzna</option>
+                            <option value="Kobieta">Kobieta</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Wiek *</label>
+                        <input type="number" id="diet_age" min="1" max="120" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Numer telefonu</label>
+                        <input type="tel" id="diet_phone">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Adres E-Mail</label>
+                        <input type="email" id="diet_email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Jakie masz cele związane z dietą? *</label>
+                        <textarea id="diet_goals" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Poziom aktywności fizycznej *</label>
+                        <select id="diet_activityLevel" required>
+                            <option value="">Wybierz...</option>
+                            <option value="Siedzący tryb życia">Siedzący tryb życia</option>
+                            <option value="Niska aktywność">Niska aktywność (1-2 treningi/tydzień)</option>
+                            <option value="Umiarkowana aktywność">Umiarkowana aktywność (3-4 treningi/tydzień)</option>
+                            <option value="Wysoka aktywność">Wysoka aktywność (5-6 treningów/tydzień)</option>
+                            <option value="Bardzo wysoka aktywność">Bardzo wysoka aktywność (trening codzienny)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Czy masz jakieś specjalne preferencje lub ograniczenia dietetyczne?</label>
+                        <textarea id="diet_preferences" rows="3" placeholder="np. wegetarianizm, bezglutenowa, itp."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Czy obecnie stosujesz jakiekolwiek suplementy diety?</label>
+                        <select id="diet_usesSupplements">
+                            <option value="Nie">Nie</option>
+                            <option value="Tak">Tak</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Jeśli tak, jakie suplementy stosujesz?</label>
+                        <textarea id="diet_supplements" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Jakie posiłki spożywasz w ciągu dnia?</label>
+                        <textarea id="diet_meals" rows="3" placeholder="np. śniadanie, obiad, kolacja, przekąski"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Ile wody pijesz dziennie?</label>
+                        <input type="text" id="diet_waterIntake" placeholder="np. 2 litry">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Preferencje smakowe</label>
+                        <textarea id="diet_tastes" rows="2" placeholder="Co lubisz, czego unikasz?"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Alergie pokarmowe</label>
+                        <textarea id="diet_allergies" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Choroby przewlekłe lub inne problemy zdrowotne</label>
+                        <textarea id="diet_conditions" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Przyjmowane leki</label>
+                        <textarea id="diet_medications" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Inne informacje, które mogą być ważne</label>
+                        <textarea id="diet_otherInfo" rows="3"></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeDietSurvey()">Anuluj</button>
+                        <button type="submit" class="btn-primary">Zapisz ankietę</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal - Ankieta Plan Treningowy -->
+    <div id="trainingSurveyModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📋 Ankieta - Plan Treningowy</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="trainingSurveyForm">
+                    <input type="hidden" id="trainingSurveyClientId">
+                    <input type="hidden" id="trainingSurveyServiceIndex">
+                    
+                    <div class="form-group">
+                        <label>Imię i Nazwisko *</label>
+                        <input type="text" id="training_fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Płeć *</label>
+                        <select id="training_gender" required>
+                            <option value="">Wybierz...</option>
+                            <option value="Mężczyzna">Mężczyzna</option>
+                            <option value="Kobieta">Kobieta</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Wiek *</label>
+                        <input type="number" id="training_age" min="1" max="120" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Numer telefonu</label>
+                        <input type="tel" id="training_phone">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Adres E-Mail</label>
+                        <input type="email" id="training_email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Jakie są Twoje główne cele treningowe? *</label>
+                        <textarea id="training_goals" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Jak oceniasz swój poziom zaawansowania w treningu? *</label>
+                        <select id="training_level" required>
+                            <option value="">Wybierz...</option>
+                            <option value="Początkujący">Początkujący</option>
+                            <option value="Średniozaawansowany">Średniozaawansowany</option>
+                            <option value="Zaawansowany">Zaawansowany</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Jak oceniasz swój poziom zaawansowania w skali od 1 do 10 *</label>
+                        <input type="number" id="training_levelScale" min="1" max="10" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Ile czasu już ćwiczysz regularnie?</label>
+                        <input type="text" id="training_experience" placeholder="np. 2 lata, 6 miesięcy">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Czy wcześniej korzystałeś z indywidualnych planów treningowych?</label>
+                        <select id="training_hadPlan">
+                            <option value="Nie">Nie</option>
+                            <option value="Tak">Tak</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Jakie masz dostępne sprzęty do treningu?</label>
+                        <textarea id="training_equipment" rows="2" placeholder="np. hantle, sztanga, kettlebell"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Czy masz dostęp do specjalistycznych maszyn?</label>
+                        <textarea id="training_machines" rows="2" placeholder="np. bieżnia, rower stacjonarny, smith machine"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Czy preferujesz ćwiczenia z własną masą ciała czy ze sprzętem?</label>
+                        <select id="training_preference">
+                            <option value="">Wybierz...</option>
+                            <option value="Z własną masą ciała">Z własną masą ciała</option>
+                            <option value="Ze sprzętem">Ze sprzętem</option>
+                            <option value="Mieszane">Mieszane</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Ile dni w tygodniu możesz poświęcić na trening? *</label>
+                        <input type="number" id="training_daysPerWeek" min="1" max="7" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Ile czasu możesz poświęcić na jeden trening?</label>
+                        <input type="text" id="training_duration" placeholder="np. 60 minut">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Czy preferujesz treningi w formie ćwiczeń siłowych, cardio, czy mieszanych?</label>
+                        <select id="training_type">
+                            <option value="">Wybierz...</option>
+                            <option value="Siłowe">Siłowe</option>
+                            <option value="Cardio">Cardio</option>
+                            <option value="Mieszane">Mieszane</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Czy masz jakiekolwiek kontuzje lub problemy zdrowotne?</label>
+                        <textarea id="training_injuries" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Czy przyjmujesz jakiekolwiek leki, które mogą wpływać na Twoje treningi?</label>
+                        <textarea id="training_medications" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Czy lekarz zalecił Ci ograniczenia w zakresie ćwiczeń fizycznych?</label>
+                        <textarea id="training_restrictions" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Jakie masz oczekiwania względem mojego planu treningowego?</label>
+                        <textarea id="training_expectations" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Czy masz jakiekolwiek inne informacje, które powinienem uwzględnić?</label>
+                        <textarea id="training_otherInfo" rows="3"></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeTrainingSurvey()">Anuluj</button>
+                        <button type="submit" class="btn-primary">Zapisz ankietę</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -808,6 +1076,7 @@
     <script src="js/auth.js"></script>
     <script src="js/clients.js"></script>
     <script src="js/services.js"></script>
+    <script src="js/surveys.js"></script>
     <script src="js/finances.js"></script>
     <script src="js/notes.js"></script>
     <script src="js/measurements.js"></script>
