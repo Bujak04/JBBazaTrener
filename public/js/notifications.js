@@ -75,9 +75,17 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotificationsModal();
         });
     }
+    
+    // Przycisk czyszczenia powiadomień
+    const clearBtn = document.getElementById('clearNotificationsBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            clearNotifications();
+        });
+    }
 });
 
-// Modal powiadomień (możesz dodać do HTML jeśli chcesz)
+// Modal powiadomień
 function showNotificationsModal() {
     const expiringClients = [];
     const today = new Date();
@@ -106,23 +114,69 @@ function showNotificationsModal() {
         });
     }
     
+    const modal = document.getElementById('notificationsModal');
+    const notificationsList = document.getElementById('notificationsList');
+    
+    if (!modal || !notificationsList) {
+        console.error('Notifications modal elements not found');
+        return;
+    }
+    
     if (expiringClients.length === 0) {
-        showToast('Brak ważnych powiadomień', 'info');
+        notificationsList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">✅</div>
+                <p>Brak wygasających prowadzeń</p>
+                <p style="color: var(--text-gray); font-size: 14px; margin-top: 10px;">
+                    Wszystkie prowadzenia są aktualne
+                </p>
+            </div>
+        `;
+        modal.classList.add('active');
         return;
     }
     
     // Sortuj po czasie
     expiringClients.sort((a, b) => a.daysUntilEnd - b.daysUntilEnd);
     
-    let message = 'Wygasające prowadzenia:\n\n';
-    expiringClients.forEach(item => {
-        message += `${item.client.firstName} ${item.client.lastName} - `;
-        message += item.daysUntilEnd === 0 ? 'wygasa dziś!\n' : 
-                   item.daysUntilEnd === 1 ? 'wygasa jutro\n' : 
-                   `wygasa za ${item.daysUntilEnd} dni\n`;
-    });
+    notificationsList.innerHTML = expiringClients.map(item => {
+        const urgencyClass = item.daysUntilEnd === 0 ? 'urgent' : 
+                            item.daysUntilEnd <= 2 ? 'warning' : 'info';
+        const timeText = item.daysUntilEnd === 0 ? '🔴 Wygasa dziś!' : 
+                        item.daysUntilEnd === 1 ? '🟠 Wygasa jutro' : 
+                        `🟡 Wygasa za ${item.daysUntilEnd} dni`;
+        
+        return `
+            <div class="notification-item ${urgencyClass}" style="padding: 15px; margin-bottom: 10px; background: var(--card-bg); border-radius: 8px; border-left: 4px solid var(--primary-green); cursor: pointer;" onclick="openClientDetails('${item.client.id}')">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 16px; margin-bottom: 5px;">
+                            ${item.client.firstName} ${item.client.lastName}
+                        </div>
+                        <div style="color: var(--text-gray); font-size: 14px;">
+                            📊 Prowadzenie kończy się: ${formatDate(item.endDate)}
+                        </div>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 600; white-space: nowrap; margin-left: 15px;">
+                        ${timeText}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
     
-    alert(message);
+    modal.classList.add('active');
+}
+
+// Przycisk czyszczenia powiadomień
+function clearNotifications() {
+    if (!confirm('Czy na pewno chcesz wyczyścić wszystkie powiadomienia? To nie usunie klientów ani usług.')) {
+        return;
+    }
+    
+    // Po prostu zamknij modal - powiadomienia są generowane dynamicznie z aktywnych usług
+    document.getElementById('notificationsModal').classList.remove('active');
+    showToast('Powiadomienia zostały ukryte', 'info');
 }
 
 // Aktualizuj badge przy każdej zmianie danych
@@ -131,5 +185,10 @@ if (window.db) {
         updateNotificationBadge();
     });
 }
+
+// Eksporty globalne
+window.updateNotificationBadge = updateNotificationBadge;
+window.showNotificationsModal = showNotificationsModal;
+window.clearNotifications = clearNotifications;
 
 console.log('Notifications.js loaded');

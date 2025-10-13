@@ -597,6 +597,24 @@
     </div>
 
     <!-- Loading spinner -->
+    <!-- Modal - Powiadomienia -->
+    <div id="notificationsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔔 Powiadomienia</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="notificationsList" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Powiadomienia będą dodane dynamicznie -->
+                </div>
+                <div class="modal-actions" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <button id="clearNotificationsBtn" class="btn-secondary" style="width: 100%;">🗑️ Wyczyść wszystkie</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="loadingSpinner" class="loading-spinner" style="display: none;">
         <div class="spinner"></div>
     </div>

@@ -237,7 +237,15 @@ function openMeasurementModal() {
 async function handleMeasurementSubmit(e) {
     e.preventDefault();
     
-    if (!selectedMeasurementClient) {
+    // Obsłuż zarówno modalem z profilu klienta (dataset.clientId) jak i z zakładki pomiary (selectedMeasurementClient)
+    let clientId = null;
+    if (e.target.dataset.clientId) {
+        clientId = e.target.dataset.clientId;
+    } else if (selectedMeasurementClient) {
+        clientId = selectedMeasurementClient.id;
+    }
+    
+    if (!clientId) {
         showToast('Brak wybranego klienta', 'error');
         return;
     }
@@ -264,7 +272,7 @@ async function handleMeasurementSubmit(e) {
     showLoading(true);
     
     try {
-        const clientRef = window.db.collection('clients').doc(selectedMeasurementClient.id);
+        const clientRef = window.db.collection('clients').doc(clientId);
         const clientDoc = await clientRef.get();
         const clientData = clientDoc.data();
         
@@ -276,6 +284,11 @@ async function handleMeasurementSubmit(e) {
         
         showToast('Pomiar dodany', 'success');
         document.getElementById('measurementModal').classList.remove('active');
+        
+        // Odśwież widok profilu klienta jeśli jest otwarty
+        if (window.currentClient && window.currentClient.id === clientId) {
+            openClientDetails(clientId);
+        }
         
         // Odśwież widok
         await loadClientMeasurements(selectedMeasurementClient.id);
@@ -397,8 +410,34 @@ function renderWeightChart(client) {
     });
 }
 
+// Otwieranie modala pomiaru z pre-wypełnionym klientem
+function openMeasurementModal(clientId) {
+    const modal = document.getElementById('measurementModal');
+    const form = document.getElementById('measurementForm');
+    
+    if (!modal || !form) {
+        console.error('Measurement modal elements not found');
+        return;
+    }
+    
+    form.reset();
+    form.dataset.clientId = clientId;
+    
+    // Ustaw dzisiejszą datę jako domyślną
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('measurementDate');
+    if (dateInput) {
+        dateInput.value = today;
+    }
+    
+    modal.classList.add('active');
+}
+
 console.log('Measurements.js loaded');
 // Eksporty globalne
 window.handleMeasurementSubmit = handleMeasurementSubmit;
 window.loadClientMeasurements = loadClientMeasurements;
 window.deleteMeasurement = deleteMeasurement;
+window.updateMeasurementClientSelect = updateMeasurementClientSelect;
+window.openMeasurementModal = openMeasurementModal;
+

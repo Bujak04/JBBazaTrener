@@ -135,12 +135,15 @@ async function handleServiceSubmit(e) {
                 createdAt: firebase.firestore.Timestamp.fromDate(now)
             };
             
-            // Dodaj datę zakończenia tylko dla diety i planu treningowego
-            // Prowadzenie nie ma daty zakończenia (ciągłe)
-            if (type !== 'prowadzenie' && endDate) {
+            // Prowadzenie - automatycznie 30 dni od startu
+            if (type === 'prowadzenie') {
+                const endDateCalc = new Date(startDate);
+                endDateCalc.setDate(endDateCalc.getDate() + 30);
+                service.endDate = firebase.firestore.Timestamp.fromDate(endDateCalc);
+            } 
+            // Dieta i plan treningowy - data z formularza
+            else if (endDate) {
                 service.endDate = firebase.firestore.Timestamp.fromDate(new Date(endDate));
-            } else if (type === 'prowadzenie') {
-                service.endDate = null;
             }
             
             return service;
@@ -179,9 +182,32 @@ async function handleServiceSubmit(e) {
 
 // Przedłużanie prowadzenia
 async function extendService(clientId, serviceIndex) {
-    const days = prompt('O ile dni przedłużyć prowadzenie?', '30');
+    // Pobierz aktualną datę zakończenia
+    let currentEndDateStr = '';
+    try {
+        const clientRef = window.db.collection('clients').doc(clientId);
+        const clientDoc = await clientRef.get();
+        if (clientDoc.exists) {
+            const service = clientDoc.data().services[serviceIndex];
+            if (service && service.endDate) {
+                const endDate = service.endDate.toDate();
+                currentEndDateStr = endDate.toISOString().split('T')[0];
+            }
+        }
+    } catch (e) {
+        console.error('Error getting current end date:', e);
+    }
     
-    if (!days || isNaN(days) || parseInt(days) <= 0) {
+    const newEndDate = prompt('Podaj nową datę zakończenia (RRRR-MM-DD):', currentEndDateStr);
+    
+    if (!newEndDate) {
+        return;
+    }
+    
+    // Walidacja daty
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(newEndDate)) {
+        showToast('Nieprawidłowy format daty. Użyj RRRR-MM-DD', 'error');
         return;
     }
     
@@ -208,18 +234,8 @@ async function extendService(clientId, serviceIndex) {
         
         const service = services[serviceIndex];
         
-        if (!service.endDate) {
-            showToast('Usługa nie ma daty zakończenia', 'error');
-            showLoading(false);
-            return;
-        }
-        
-        // Dodaj dni do daty zakończenia
-        const currentEndDate = service.endDate.toDate();
-        const newEndDate = new Date(currentEndDate);
-        newEndDate.setDate(newEndDate.getDate() + parseInt(days));
-        
-        services[serviceIndex].endDate = firebase.firestore.Timestamp.fromDate(newEndDate);
+        // Ustaw nową datę zakończenia
+        services[serviceIndex].endDate = firebase.firestore.Timestamp.fromDate(new Date(newEndDate));
         services[serviceIndex].status = 'aktywny';
         
         const newStatus = calculateClientStatus(services);
@@ -230,7 +246,7 @@ async function extendService(clientId, serviceIndex) {
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        showToast(`Prowadzenie przedłużone o ${days} dni`, 'success');
+        showToast(`Prowadzenie przedłużone do ${newEndDate}`, 'success');
         
         if (window.currentClient && window.currentClient.id === clientId) {
             openClientDetails(clientId);

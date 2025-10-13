@@ -474,24 +474,29 @@ function setupClientDetailsButtons(client) {
     
     // Dodaj notatkę
     document.getElementById('addClientNoteBtn').onclick = () => {
-        document.getElementById('clientDetailsModal').classList.remove('active');
+        // NIE zamykaj profilu, tylko otwórz modal notatki
         openNoteModal(client.id);
     };
     
     // Dodaj pomiar
     document.getElementById('addClientMeasurementBtn').onclick = () => {
-        document.getElementById('clientDetailsModal').classList.remove('active');
-        // Otwórz zakładkę pomiary i automatycznie wybierz klienta
-        switchTab('measurements');
-        setTimeout(() => {
-            if (window.updateMeasurementClientSelect) {
-                window.updateMeasurementClientSelect();
-                document.getElementById('measurementClientSelect').value = client.id;
-                if (window.loadClientMeasurements) {
-                    window.loadClientMeasurements(client);
+        // NIE zamykaj profilu, tylko otwórz modal pomiaru z pre-wypełnionym klientem
+        if (window.openMeasurementModal) {
+            window.openMeasurementModal(client.id);
+        } else {
+            // Fallback - jeśli nie ma funkcji, użyj starego sposobu
+            document.getElementById('clientDetailsModal').classList.remove('active');
+            switchTab('measurements');
+            setTimeout(() => {
+                if (window.updateMeasurementClientSelect) {
+                    window.updateMeasurementClientSelect();
+                    document.getElementById('measurementClientSelect').value = client.id;
+                    if (window.loadClientMeasurements) {
+                        window.loadClientMeasurements(client);
+                    }
                 }
-            }
-        }, 100);
+            }, 100);
+        }
     };
     
     // Upload pliku
