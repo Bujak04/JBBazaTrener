@@ -2,11 +2,11 @@
 
 // Domyślny cennik usług (przechowywany w Firebase)
 let servicePricing = {
-    dieta: 300,
-    plan_treningowy: 250,
-    prowadzenie: 400,
-    prowadzenie_pierwszy: 390,
-    wspolpraca_prywatna: 500
+    dieta: 0,
+    plan_treningowy: 0,
+    prowadzenie: 0,
+    prowadzenie_pierwszy: 0,
+    wspolpraca_prywatna: 0
 };
 
 // Eksportuj do window

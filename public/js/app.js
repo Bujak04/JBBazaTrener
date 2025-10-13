@@ -237,7 +237,10 @@ async function updateServicePrice() {
     const priceInput = document.getElementById('servicePrice');
     const paymentDescInput = document.getElementById('servicePaymentDescription');
     
-    if (!priceInput || checkedBoxes.length === 0) return;
+    if (!priceInput || checkedBoxes.length === 0) {
+        if (priceInput) priceInput.value = 0;
+        return;
+    }
     
     let suggestedPrice = 0;
     
@@ -267,14 +270,19 @@ async function updateServicePrice() {
                                 }
                             } else {
                                 suggestedPrice += window.servicePricing.prowadzenie || 0;
+                                if (paymentDescInput) {
+                                    paymentDescInput.value = '';
+                                }
                             }
                         }
                     } catch (error) {
                         console.error('Error checking prowadzenie:', error);
-                        suggestedPrice += window.servicePricing.prowadzenie || 0;
+                        // Jeśli błąd, przyjmij że to pierwszy miesiąc (bezpieczniejsze)
+                        suggestedPrice += window.servicePricing.prowadzenie_pierwszy || 0;
                     }
                 } else {
-                    suggestedPrice += window.servicePricing.prowadzenie || 0;
+                    // Brak clientId - prawdopodobnie błąd, nie dodawaj ceny
+                    console.warn('Brak clientId - nie można określić ceny prowadzenia');
                 }
             } else {
                 suggestedPrice += window.servicePricing[priceKey] || 0;
