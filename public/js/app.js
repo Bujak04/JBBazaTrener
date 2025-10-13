@@ -272,14 +272,4 @@ function openNoteModal(clientId = null) {
     modal.classList.add('active');
 }
 
-console.log('App.js loaded');
-
-// Initialize the application
-document.addEventListener('DOMContentLoaded', () => {
-    if (auth.currentUser) {
-        initializeApp();
-        loadClients(); // Load clients if logged in
-    } else {
-        window.location.href = 'login.html'; // Redirect to login if not authenticated
-    }
-});
+console.log('? App.js loaded');
