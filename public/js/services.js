@@ -119,6 +119,7 @@ async function handleServiceSubmit(e) {
         
         const clientData = clientDoc.data();
         
+        const now = new Date();
         const newServices = selectedTypes.map(type => ({
             type: type,
             startDate: firebase.firestore.Timestamp.fromDate(new Date(startDate)),
@@ -126,7 +127,13 @@ async function handleServiceSubmit(e) {
                 firebase.firestore.Timestamp.fromDate(new Date(endDate)) : null,
             status: status,
             notes: notes,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            payment: {
+                isPaid: false,
+                amount: 0,
+                dueDate: null,
+                paidDate: null
+            },
+            createdAt: firebase.firestore.Timestamp.fromDate(now)
         }));
         
         const updatedServices = [...(clientData.services || []), ...newServices];

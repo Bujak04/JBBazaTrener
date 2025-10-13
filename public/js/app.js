@@ -8,11 +8,12 @@ function initializeApp() {
     console.log('Initializing app...');
     
     // Nasłuchiwanie na zmiany w klientach
-    db.collection('clients').onSnapshot((snapshot) => {
+    window.db.collection('clients').onSnapshot((snapshot) => {
         allClients = [];
         snapshot.forEach((doc) => {
             allClients.push({ id: doc.id, ...doc.data() });
         });
+        window.allClients = allClients;
         
         updateDashboard();
         renderClientsList();
@@ -21,7 +22,7 @@ function initializeApp() {
     });
 
     // Nasłuchiwanie na notatki
-    db.collection('notes').orderBy('createdAt', 'desc').onSnapshot(() => {
+    window.db.collection('notes').orderBy('createdAt', 'desc').onSnapshot(() => {
         renderNotesList();
     });
 

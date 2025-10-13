@@ -267,8 +267,7 @@ async function handleMeasurementSubmit(e) {
         const updatedMeasurements = [...(clientData.measurements || []), measurementData];
         
         await clientRef.update({
-            measurements: updatedMeasurements,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            measurements: updatedMeasurements
         });
         
         showToast('Pomiar dodany', 'success');

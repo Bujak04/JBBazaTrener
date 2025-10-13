@@ -1,5 +1,25 @@
 // clients.js - This file manages client-related functionalities, such as adding, editing, deleting clients, and retrieving client data from Firestore.
 
+// Globalna tablica klientów
+let allClients = [];
+window.allClients = allClients;
+
+// Funkcja ładowania wszystkich klientów
+async function loadAllClients() {
+    try {
+        const snapshot = await window.db.collection('clients').get();
+        allClients = [];
+        snapshot.forEach(doc => {
+            allClients.push({ id: doc.id, ...doc.data() });
+        });
+        window.allClients = allClients;
+        return allClients;
+    } catch (error) {
+        console.error('Error loading clients:', error);
+        return [];
+    }
+}
+
 // Function to retrieve all clients from Firestore
 async function getClients() {
     const snapshot = await window.db.collection('clients').get();
@@ -160,7 +180,7 @@ async function openClientDetails(clientId) {
     showLoading(true);
     
     try {
-        const doc = await db.collection('clients').doc(clientId).get();
+        const doc = await window.db.collection('clients').doc(clientId).get();
         
         if (!doc.exists) {
             showToast('Nie znaleziono klienta', 'error');
@@ -168,7 +188,7 @@ async function openClientDetails(clientId) {
         }
         
         const client = { id: doc.id, ...doc.data() };
-        currentClient = client;
+        window.currentClient = client;
         
         renderClientDetails(client);
         
@@ -213,9 +233,11 @@ function renderClientDetails(client) {
         <div class="detail-item">
             <span class="detail-label">Status</span>
             <span class="detail-value">
-                <span class="client-status status-${client.status}">
-                    ${getStatusLabel(client.status)}
-                </span>
+                <select class="status-select" id="clientStatusSelect" onchange="changeClientStatus('${client.id}', this.value)" style="padding: 5px 10px; border: 1px solid var(--primary-green); background: var(--card-bg); color: var(--text-color); border-radius: 5px;">
+                    <option value="aktywny" ${client.status === 'aktywny' ? 'selected' : ''}>Aktywny</option>
+                    <option value="nieaktywny" ${client.status === 'nieaktywny' ? 'selected' : ''}>Nieaktywny</option>
+                    <option value="wygasa" ${client.status === 'wygasa' ? 'selected' : ''}>Wygasa</option>
+                </select>
             </span>
         </div>
     `;
@@ -429,11 +451,36 @@ function getFileIcon(type) {
     return icons[type] || '📎';
 }
 
+// Zmiana statusu klienta
+async function changeClientStatus(clientId, newStatus) {
+    showLoading(true);
+    
+    try {
+        await window.db.collection('clients').doc(clientId).update({
+            status: newStatus
+        });
+        
+        showToast('Status zmieniony', 'success');
+        
+        // Odśwież widok szczegółów
+        if (window.currentClient && window.currentClient.id === clientId) {
+            openClientDetails(clientId);
+        }
+        
+    } catch (error) {
+        console.error('Error changing status:', error);
+        showToast('Błąd zmiany statusu', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
 // Eksporty globalne
 window.handleClientSubmit = handleClientSubmit;
 window.renderClientsList = renderClientsList;
 window.openClientDetails = openClientDetails;
 window.openClientModal = openClientModal;
 window.deleteClient = deleteClient;
+window.changeClientStatus = changeClientStatus;
 
 console.log('✅ Clients.js loaded');
