@@ -61,36 +61,98 @@ function initializeTrainingCreator() {
     const formContainer = document.getElementById('creatorForm');
     
     const formHtml = `
+        <h3 style="margin: 0 0 20px 0; color: var(--primary-green);">📝 Podstawowe informacje</h3>
+        
         <div class="form-group">
-            <label>Wybierz podopiecznego</label>
-            <select id="trainingClient" class="form-control" onchange="updateTrainingPreview()">
-                <option value="">-- Wybierz --</option>
-                ${(window.allClients || []).map(client => 
-                    `<option value="${client.id}">${client.firstName} ${client.lastName}</option>`
-                ).join('')}
-            </select>
+            <label>Tytuł planu (okładka) *</label>
+            <input type="text" id="trainingTitle" class="form-control" value="BUDOWA MASY MIĘŚNIOWEJ" placeholder="np. BUDOWA MASY MIĘŚNIOWEJ" oninput="updateTrainingPreview()">
         </div>
         
         <div class="form-group">
-            <label>Tytuł planu *</label>
-            <input type="text" id="trainingTitle" class="form-control" placeholder="np. Plan FBW - Budowa masy" oninput="updateTrainingPreview()">
+            <label>Podtytuł (liczba dni) *</label>
+            <input type="text" id="trainingSubtitle" class="form-control" value="5 DNI - SPLIT" placeholder="np. 5 DNI - SPLIT" oninput="updateTrainingPreview()">
         </div>
         
         <div class="form-group">
-            <label>Cel treningu</label>
-            <input type="text" id="trainingGoal" class="form-control" placeholder="np. Budowa masy mięśniowej" oninput="updateTrainingPreview()">
+            <label>Motto (opcjonalnie)</label>
+            <input type="text" id="trainingMotto" class="form-control" value="Twoja droga do silniejszego ciała zaczyna się teraz!" placeholder="Motto..." oninput="updateTrainingPreview()">
         </div>
+        
+        <hr style="margin: 30px 0; border-color: var(--border-color);">
+        
+        <h3 style="margin: 0 0 20px 0; color: var(--primary-green);">📋 Strona instrukcji</h3>
+        
+        <div class="form-group">
+            <label>Plan składa się z:</label>
+            <textarea id="instructionPlan" class="form-control" rows="3" oninput="updateTrainingPreview()">Plan składa się z 5 dni treningowych. Każdy dzień skupia się na innych grupach mięśniowych. Przestrzegaj ćwiczeń, dbaj o technikę i odpoczynek.</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Rozgrzewka:</label>
+            <textarea id="instructionWarmup" class="form-control" rows="2" oninput="updateTrainingPreview()">Rozgrzewka 5-10 minut zmniejsza ryzyko kontuzji i poprawia wyniki.</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Progresja:</label>
+            <textarea id="instructionProgress" class="form-control" rows="2" oninput="updateTrainingPreview()">Zwiększaj ciężary co 1-2 tygodnie, aby budować masę mięśniową.</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Żywienie:</label>
+            <textarea id="instructionNutrition" class="form-control" rows="2" oninput="updateTrainingPreview()">Dbaj o nadwyżkę kaloryczną, spożywaj białko w każdym posiłku.</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Regeneracja:</label>
+            <textarea id="instructionRecovery" class="form-control" rows="2" oninput="updateTrainingPreview()">Śpij 7-8 godzin. Mięśnie rosną w trakcie odpoczynku.</textarea>
+        </div>
+        
+        <hr style="margin: 30px 0; border-color: var(--border-color);">
+        
+        <h3 style="margin: 0 0 20px 0; color: var(--primary-green);">💪 Dni treningowe</h3>
         
         <div class="form-group">
             <label>Liczba dni treningowych</label>
-            <input type="number" id="trainingDays" class="form-control" value="3" min="1" max="7" oninput="updateTrainingDays()">
+            <input type="number" id="trainingDays" class="form-control" value="5" min="1" max="7" oninput="updateTrainingDays()">
         </div>
         
-        <div id="trainingDaysContainer" style="margin-top: 30px;">
+        <div id="trainingDaysContainer" style="margin-top: 20px;">
             <!-- Dynamicznie generowane dni -->
         </div>
         
-        <button class="btn-secondary" style="width: 100%; margin-top: 20px;" onclick="addTrainingDay()">+ Dodaj dzień treningowy</button>
+        <hr style="margin: 30px 0; border-color: var(--border-color);">
+        
+        <h3 style="margin: 0 0 20px 0; color: var(--primary-green);">✅ Podsumowanie (ostatnia strona)</h3>
+        
+        <div class="form-group">
+            <label>Tekst gratulacyjny:</label>
+            <textarea id="summaryText" class="form-control" rows="3" oninput="updateTrainingPreview()">Gratulacje! Właśnie rozpocząłeś podróż w stronę budowy masy mięśniowej. Regularne treningi, odpowiednia dieta i regeneracja to klucz do sukcesu.</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Cytat motywacyjny:</label>
+            <input type="text" id="summaryQuote" class="form-control" value="Nie liczy się to, ile razy upadasz, ale ile razy wstajesz. Każda seria to krok bliżej Twojego celu." oninput="updateTrainingPreview()">
+        </div>
+        
+        <div class="form-group">
+            <label>Wskazówka 1 - Waga i obwody:</label>
+            <input type="text" id="tip1" class="form-control" value="Notuj wagę co tydzień." oninput="updateTrainingPreview()">
+        </div>
+        
+        <div class="form-group">
+            <label>Wskazówka 2 - Siła i technika:</label>
+            <input type="text" id="tip2" class="form-control" value="Mierz obwody kluczowych partii (klatka, talia, biceps, udo, łydka)." oninput="updateTrainingPreview()">
+        </div>
+        
+        <div class="form-group">
+            <label>Wskazówka 3 - Zdjęcia progresu:</label>
+            <input type="text" id="tip3" class="form-control" value="Rób zdjęcia co 4 tygodnie w tych samych warunkach." oninput="updateTrainingPreview()">
+        </div>
+        
+        <div class="form-group">
+            <label>Wezwanie do działania (CTA):</label>
+            <input type="text" id="ctaText" class="form-control" value="MASZ PYTANIA? SKONTAKTUJ SIĘ ZE MNĄ! RAZEM OSIĄGNIEMY TWÓJ CEL." oninput="updateTrainingPreview()">
+        </div>
     `;
     
     formContainer.innerHTML = formHtml;
@@ -112,17 +174,18 @@ function updateTrainingDays() {
             warmup3: document.getElementById(`warmup3_${dayNum}`)?.value || '',
             exercises: Array.from(dayEl.querySelectorAll('.exercise-row')).map(row => ({
                 name: row.querySelector('.exercise-name').value,
+                muscle: row.querySelector('.exercise-muscle').value,
                 sets: row.querySelector('.exercise-sets').value,
                 reps: row.querySelector('.exercise-reps').value,
-                tempo: row.querySelector('.exercise-tempo').value,
-                rest: row.querySelector('.exercise-rest').value
+                rest: row.querySelector('.exercise-rest').value,
+                rir: row.querySelector('.exercise-rir').value
             }))
         };
     });
     
     let html = '';
     for (let i = 1; i <= daysCount; i++) {
-        const dayData = existingDays[i - 1] || { name: '', warmup1: '', warmup2: '', warmup3: '', exercises: [{name: '', sets: '', reps: '', tempo: '', rest: ''}] };
+        const dayData = existingDays[i - 1] || { name: '', warmup1: '', warmup2: '', warmup3: '', exercises: [{name: '', muscle: '', sets: '', reps: '', rest: '', rir: ''}] };
         
         html += `
             <div class="training-day" data-day="${i}" style="background: var(--bg-dark); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
@@ -167,28 +230,32 @@ function updateTrainingDays() {
 // Tworzenie wiersza ćwiczenia
 function createExerciseRow(dayNum, exNum, data = {}) {
     return `
-        <div class="exercise-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 10px; align-items: end;">
+        <div class="exercise-row" style="display: grid; grid-template-columns: 2fr 1.5fr 0.7fr 1fr 1fr 0.7fr auto; gap: 8px; margin-bottom: 10px; align-items: end;">
             <div class="form-group" style="margin: 0;">
-                <label style="font-size: 12px;">Ćwiczenie</label>
+                <label style="font-size: 11px;">Ćwiczenie</label>
                 <input type="text" class="form-control exercise-name" value="${data.name || ''}" placeholder="np. Wyciskanie sztangi" oninput="updateTrainingPreview()">
             </div>
             <div class="form-group" style="margin: 0;">
-                <label style="font-size: 12px;">Serie</label>
+                <label style="font-size: 11px;">Partia Mięśniowa</label>
+                <input type="text" class="form-control exercise-muscle" value="${data.muscle || ''}" placeholder="np. Triceps" oninput="updateTrainingPreview()">
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label style="font-size: 11px;">Serie</label>
                 <input type="text" class="form-control exercise-sets" value="${data.sets || ''}" placeholder="4" oninput="updateTrainingPreview()">
             </div>
             <div class="form-group" style="margin: 0;">
-                <label style="font-size: 12px;">Powtórz.</label>
+                <label style="font-size: 11px;">Powtórzenia</label>
                 <input type="text" class="form-control exercise-reps" value="${data.reps || ''}" placeholder="8-12" oninput="updateTrainingPreview()">
             </div>
             <div class="form-group" style="margin: 0;">
-                <label style="font-size: 12px;">Tempo</label>
-                <input type="text" class="form-control exercise-tempo" value="${data.tempo || ''}" placeholder="3010" oninput="updateTrainingPreview()">
+                <label style="font-size: 11px;">Przerwa</label>
+                <input type="text" class="form-control exercise-rest" value="${data.rest || ''}" placeholder="90 sek" oninput="updateTrainingPreview()">
             </div>
             <div class="form-group" style="margin: 0;">
-                <label style="font-size: 12px;">Przerwa</label>
-                <input type="text" class="form-control exercise-rest" value="${data.rest || ''}" placeholder="90s" oninput="updateTrainingPreview()">
+                <label style="font-size: 11px;">RIR</label>
+                <input type="text" class="form-control exercise-rir" value="${data.rir || ''}" placeholder="1-2" oninput="updateTrainingPreview()">
             </div>
-            <button class="btn-danger" style="padding: 8px 12px;" onclick="this.parentElement.remove(); updateTrainingPreview();">✕</button>
+            <button class="btn-danger" style="padding: 8px 12px; font-size: 12px;" onclick="this.parentElement.remove(); updateTrainingPreview();">✕</button>
         </div>
     `;
 }
@@ -226,10 +293,11 @@ function updateTrainingPreview() {
             },
             exercises: Array.from(dayEl.querySelectorAll('.exercise-row')).map(row => ({
                 name: row.querySelector('.exercise-name').value,
+                muscle: row.querySelector('.exercise-muscle').value,
                 sets: row.querySelector('.exercise-sets').value,
                 reps: row.querySelector('.exercise-reps').value,
-                tempo: row.querySelector('.exercise-tempo').value,
-                rest: row.querySelector('.exercise-rest').value
+                rest: row.querySelector('.exercise-rest').value,
+                rir: row.querySelector('.exercise-rir').value
             })).filter(ex => ex.name)
         };
     });
@@ -610,10 +678,11 @@ async function generateTrainingPDF(doc) {
             },
             exercises: Array.from(dayEl.querySelectorAll('.exercise-row')).map(row => ({
                 name: row.querySelector('.exercise-name').value,
+                muscle: row.querySelector('.exercise-muscle').value,
                 sets: row.querySelector('.exercise-sets').value,
                 reps: row.querySelector('.exercise-reps').value,
-                tempo: row.querySelector('.exercise-tempo').value,
-                rest: row.querySelector('.exercise-rest').value
+                rest: row.querySelector('.exercise-rest').value,
+                rir: row.querySelector('.exercise-rir').value
             })).filter(ex => ex.name)
         };
     });
