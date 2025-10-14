@@ -18,6 +18,74 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
+    <!-- Ekran konfiguracji Firebase (pierwsza instalacja) -->
+    <div id="firebaseSetupScreen" class="page" style="display: none;">
+        <div class="login-container">
+            <div class="login-box" style="max-width: 600px;">
+                <h1 style="color: var(--primary-green);">🔧 Konfiguracja Aplikacji</h1>
+                <p style="color: var(--text-gray); margin-bottom: 20px;">
+                    Witaj! To pierwsza instalacja. Wprowadź dane swojego projektu Firebase.
+                </p>
+                
+                <div class="firebase-setup-form">
+                    <div class="form-group">
+                        <label>API Key *</label>
+                        <input type="text" id="setup_apiKey" placeholder="AIzaSy..." required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Auth Domain *</label>
+                        <input type="text" id="setup_authDomain" placeholder="twoj-projekt.firebaseapp.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Project ID *</label>
+                        <input type="text" id="setup_projectId" placeholder="twoj-projekt" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Storage Bucket *</label>
+                        <input type="text" id="setup_storageBucket" placeholder="twoj-projekt.firebasestorage.app" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Messaging Sender ID *</label>
+                        <input type="text" id="setup_messagingSenderId" placeholder="123456789" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>App ID *</label>
+                        <input type="text" id="setup_appId" placeholder="1:123456789:web:..." required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Admin UID (opcjonalnie)</label>
+                        <input type="text" id="setup_adminUID" placeholder="Zostaw puste lub wprowadź UID">
+                        <small class="form-hint">UID administratora z Firebase Authentication</small>
+                    </div>
+                    
+                    <button id="saveFirebaseSetupBtn" class="btn-primary" style="width: 100%; margin-top: 20px;">
+                        💾 Zapisz i uruchom aplikację
+                    </button>
+                    
+                    <div id="setupError" class="error-message" style="margin-top: 15px;"></div>
+                    
+                    <details style="margin-top: 20px; color: var(--text-gray); font-size: 13px;">
+                        <summary style="cursor: pointer; color: var(--primary-green);">📖 Gdzie znaleźć te dane?</summary>
+                        <ol style="margin-top: 10px; line-height: 1.8;">
+                            <li>Wejdź na <a href="https://console.firebase.google.com" target="_blank" style="color: var(--primary-green);">console.firebase.google.com</a></li>
+                            <li>Wybierz swój projekt</li>
+                            <li>Kliknij ikonę koła zębatego → <strong>Project settings</strong></li>
+                            <li>Przewiń w dół do sekcji <strong>"Your apps"</strong></li>
+                            <li>Wybierz aplikację webową lub utwórz nową</li>
+                            <li>Skopiuj dane z <strong>firebaseConfig</strong></li>
+                        </ol>
+                    </details>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Strona logowania -->
     <div id="loginPage" class="page active">
         <div class="login-container">
@@ -1124,6 +1192,7 @@
                 <div class="settings-tabs">
                     <button class="settings-tab-btn active" data-settings-tab="general">🏢 Ogólne</button>
                     <button class="settings-tab-btn" data-settings-tab="services">💼 Usługi i Cennik</button>
+                    <button class="settings-tab-btn" data-settings-tab="firebase">🔥 Konfiguracja Firebase</button>
                     <button class="settings-tab-btn" data-settings-tab="appearance">🎨 Wygląd</button>
                 </div>
 
@@ -1205,6 +1274,74 @@
                         <button class="btn-primary" onclick="savePricingSettings()">💾 Zapisz cennik</button>
                     </div>
 
+                    <!-- Zakładka: Konfiguracja Firebase -->
+                    <div id="settings-firebase" class="settings-tab-content">
+                        <h3>Konfiguracja połączenia Firebase</h3>
+                        <p style="color: var(--text-gray); margin-bottom: 20px;">
+                            ⚠️ <strong>Uwaga:</strong> Zmiana tych ustawień może spowodować utratę połączenia z bazą danych. 
+                            Upewnij się, że wprowadzasz prawidłowe dane!
+                        </p>
+                        
+                        <div class="form-group">
+                            <label>API Key *</label>
+                            <input type="text" id="firebase_apiKey" placeholder="AIzaSy..." required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Auth Domain *</label>
+                            <input type="text" id="firebase_authDomain" placeholder="twoj-projekt.firebaseapp.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Project ID *</label>
+                            <input type="text" id="firebase_projectId" placeholder="twoj-projekt" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Storage Bucket *</label>
+                            <input type="text" id="firebase_storageBucket" placeholder="twoj-projekt.firebasestorage.app" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Messaging Sender ID *</label>
+                            <input type="text" id="firebase_messagingSenderId" placeholder="123456789" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>App ID *</label>
+                            <input type="text" id="firebase_appId" placeholder="1:123456789:web:..." required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Admin UID</label>
+                            <input type="text" id="firebase_adminUID" placeholder="UID administratora">
+                            <small class="form-hint">UID użytkownika z Firebase Authentication z pełnymi uprawnieniami</small>
+                        </div>
+                        
+                        <div style="background: var(--bg-hover); border-left: 4px solid var(--warning); padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <strong style="color: var(--warning);">⚠️ Ostrzeżenie:</strong>
+                            <p style="color: var(--text-gray); margin-top: 5px; font-size: 14px;">
+                                Po zapisaniu nowej konfiguracji strona zostanie automatycznie odświeżona, 
+                                a Ty zostaniesz wylogowany. Będziesz musiał zalogować się ponownie przy użyciu 
+                                konta z nowego projektu Firebase.
+                            </p>
+                        </div>
+                        
+                        <button class="btn-primary" onclick="saveFirebaseConfig()">💾 Zapisz konfigurację Firebase</button>
+                        
+                        <details style="margin-top: 20px; color: var(--text-gray); font-size: 13px;">
+                            <summary style="cursor: pointer; color: var(--primary-green);">📖 Gdzie znaleźć te dane?</summary>
+                            <ol style="margin-top: 10px; line-height: 1.8;">
+                                <li>Wejdź na <a href="https://console.firebase.google.com" target="_blank" style="color: var(--primary-green);">console.firebase.google.com</a></li>
+                                <li>Wybierz swój projekt</li>
+                                <li>Kliknij ikonę koła zębatego → <strong>Project settings</strong></li>
+                                <li>Przewiń w dół do sekcji <strong>"Your apps"</strong></li>
+                                <li>Wybierz aplikację webową lub utwórz nową</li>
+                                <li>Skopiuj dane z <strong>firebaseConfig</strong></li>
+                            </ol>
+                        </details>
+                    </div>
+
                     <!-- Zakładka: Wygląd -->
                     <div id="settings-appearance" class="settings-tab-content">
                         <h3>Personalizacja wyglądu</h3>
@@ -1268,6 +1405,7 @@
 
     <!-- App scripts -->
     <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-setup.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/clients.js"></script>
     <script src="js/services.js"></script>

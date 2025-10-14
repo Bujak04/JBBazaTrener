@@ -94,6 +94,9 @@ async function loadAllSettings() {
         // Załaduj cennik
         await loadPricingIntoSettings();
         
+        // Załaduj konfigurację Firebase
+        loadFirebaseConfigIntoSettings();
+        
     } catch (error) {
         console.error('Error loading settings:', error);
         showToast('Błąd ładowania ustawień: ' + error.message, 'error');
@@ -387,6 +390,81 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ============================================
+// KONFIGURACJA FIREBASE
+// ============================================
+
+function loadFirebaseConfigIntoSettings() {
+    const config = window.loadFirebaseConfig();
+    
+    if (config) {
+        document.getElementById('firebase_apiKey').value = config.apiKey || '';
+        document.getElementById('firebase_authDomain').value = config.authDomain || '';
+        document.getElementById('firebase_projectId').value = config.projectId || '';
+        document.getElementById('firebase_storageBucket').value = config.storageBucket || '';
+        document.getElementById('firebase_messagingSenderId').value = config.messagingSenderId || '';
+        document.getElementById('firebase_appId').value = config.appId || '';
+    }
+    
+    const adminUID = localStorage.getItem('adminUID');
+    if (adminUID) {
+        document.getElementById('firebase_adminUID').value = adminUID;
+    }
+}
+
+function saveFirebaseConfig() {
+    const config = {
+        apiKey: document.getElementById('firebase_apiKey').value.trim(),
+        authDomain: document.getElementById('firebase_authDomain').value.trim(),
+        projectId: document.getElementById('firebase_projectId').value.trim(),
+        storageBucket: document.getElementById('firebase_storageBucket').value.trim(),
+        messagingSenderId: document.getElementById('firebase_messagingSenderId').value.trim(),
+        appId: document.getElementById('firebase_appId').value.trim()
+    };
+    
+    const adminUID = document.getElementById('firebase_adminUID').value.trim();
+    
+    // Walidacja
+    if (!config.apiKey || !config.authDomain || !config.projectId || 
+        !config.storageBucket || !config.messagingSenderId || !config.appId) {
+        showToast('Wszystkie pola Firebase są wymagane!', 'error');
+        return;
+    }
+    
+    // Potwierdź zmianę
+    if (!confirm('⚠️ UWAGA!\n\nZmiana konfiguracji Firebase spowoduje:\n- Wylogowanie z aplikacji\n- Odświeżenie strony\n- Konieczność zalogowania się ponownie\n\nCzy na pewno chcesz kontynuować?')) {
+        return;
+    }
+    
+    try {
+        // Zapisz konfigurację
+        window.saveFirebaseConfig(config);
+        
+        // Zapisz Admin UID
+        if (adminUID) {
+            localStorage.setItem('adminUID', adminUID);
+        } else {
+            localStorage.removeItem('adminUID');
+        }
+        
+        showToast('Konfiguracja Firebase zapisana! Odświeżam stronę...', 'success');
+        
+        // Wyloguj użytkownika
+        if (window.auth && window.auth.currentUser) {
+            window.auth.signOut();
+        }
+        
+        // Odśwież stronę za 2 sekundy
+        setTimeout(() => {
+            location.reload();
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error saving Firebase config:', error);
+        showToast('Błąd zapisywania konfiguracji: ' + error.message, 'error');
+    }
+}
+
 // Eksport funkcji
 window.openSettings = openSettings;
 window.closeSettings = closeSettings;
@@ -395,5 +473,6 @@ window.savePricingSettings = savePricingSettings;
 window.saveAppearanceSettings = saveAppearanceSettings;
 window.selectTheme = selectTheme;
 window.selectAccentColor = selectAccentColor;
+window.saveFirebaseConfig = saveFirebaseConfig;
 
 console.log('✅ Settings.js loaded');

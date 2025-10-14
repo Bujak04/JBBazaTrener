@@ -1,55 +1,132 @@
-// Konfiguracja Firebase dla Jakub Bujakiewicz - Trener Personalny
-const firebaseConfig = {
-    apiKey: "AIzaSyADUmqVCn3Vyo0M7hvV-RvKRHSydZKgGQw",
-    authDomain: "trener-personalny-panel.firebaseapp.com",
-    projectId: "trener-personalny-panel",
-    storageBucket: "trener-personalny-panel.firebasestorage.app",
-    messagingSenderId: "453926032781",
-    appId: "1:453926032781:web:6505f971d37ab6719119c4"
-};
+// Konfiguracja Firebase - dynamiczna inicjalizacja
+let firebaseConfig = null;
+let auth = null;
+let db = null;
+let ADMIN_UID = null;
 
-// Inicjalizacja Firebase
-firebase.initializeApp(firebaseConfig);
+// Funkcja do załadowania konfiguracji z localStorage
+function loadFirebaseConfig() {
+    const savedConfig = localStorage.getItem('firebaseConfig');
+    
+    if (savedConfig) {
+        try {
+            const config = JSON.parse(savedConfig);
+            return {
+                apiKey: config.apiKey,
+                authDomain: config.authDomain,
+                projectId: config.projectId,
+                storageBucket: config.storageBucket,
+                messagingSenderId: config.messagingSenderId,
+                appId: config.appId
+            };
+        } catch (error) {
+            console.error('Error parsing Firebase config:', error);
+            return null;
+        }
+    }
+    
+    return null;
+}
 
-// Inicjalizacja usług Firebase
-const auth = firebase.auth();
-const db = firebase.firestore();
+// Funkcja do zapisania konfiguracji
+function saveFirebaseConfig(config) {
+    localStorage.setItem('firebaseConfig', JSON.stringify(config));
+}
 
-// UID administratora - Twój prawdziwy UID z Firebase
-const ADMIN_UID = "SuU7wSzrXIMbmWboRJNhOIxvN4x1";
+// Funkcja do inicjalizacji Firebase
+function initializeFirebase(config) {
+    if (firebase.apps.length > 0) {
+        console.log('Firebase already initialized');
+        return;
+    }
+    
+    try {
+        // Inicjalizacja Firebase
+        firebase.initializeApp(config);
+        
+        // Inicjalizacja usług Firebase
+        auth = firebase.auth();
+        db = firebase.firestore();
+        
+        // Załaduj ADMIN_UID z localStorage
+        ADMIN_UID = localStorage.getItem('adminUID') || '';
+        
+        // Włączenie persystencji offline dla Firestore
+        db.enablePersistence({ synchronizeTabs: true })
+            .catch((err) => {
+                if (err.code === 'failed-precondition') {
+                    console.warn('Persistence: Multiple tabs open');
+                } else if (err.code === 'unimplemented') {
+                    console.warn('Persistence not available');
+                }
+            });
+        
+        // Export globalny
+        window.auth = auth;
+        window.db = db;
+        window.ADMIN_UID = ADMIN_UID;
+        
+        // Rozpocznij monitorowanie sesji
+        startInactivityTimer();
+        
+        console.log('✅ Firebase initialized successfully');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Error initializing Firebase:', error);
+        return false;
+    }
+}
+
+// Sprawdź czy konfiguracja istnieje i zainicjalizuj
+firebaseConfig = loadFirebaseConfig();
+
+if (firebaseConfig) {
+    initializeFirebase(firebaseConfig);
+} else {
+    console.log('⚠️ Firebase config not found - please configure in settings');
+    // Pokaż ekran konfiguracji
+    window.addEventListener('DOMContentLoaded', () => {
+        showFirebaseSetupScreen();
+    });
+}
 
 // Sesja - automatyczne wylogowanie po 5 minutach nieaktywności
 let inactivityTimer;
-function resetInactivityTimer() {
-    clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(() => {
-        if (auth.currentUser) {
-            console.log('Session expired due to inactivity');
-            auth.signOut();
-        }
-    }, 5 * 60 * 1000); // 5 minut = 300000ms
+
+function startInactivityTimer() {
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+            if (auth && auth.currentUser) {
+                console.log('Session expired due to inactivity');
+                auth.signOut();
+            }
+        }, 5 * 60 * 1000); // 5 minut = 300000ms
+    }
+    
+    // Monitoruj aktywność użytkownika
+    ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(event => {
+        document.addEventListener(event, resetInactivityTimer, true);
+    });
+    
+    resetInactivityTimer();
 }
 
-// Monitoruj aktywność użytkownika
-['mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(event => {
-    document.addEventListener(event, resetInactivityTimer, true);
-});
+// Funkcja do wyświetlenia ekranu konfiguracji Firebase
+function showFirebaseSetupScreen() {
+    const setupScreen = document.getElementById('firebaseSetupScreen');
+    if (setupScreen) {
+        setupScreen.style.display = 'flex';
+    }
+}
 
-// Włączenie persystencji offline dla Firestore
-db.enablePersistence({ synchronizeTabs: true })
-    .catch((err) => {
-        if (err.code === 'failed-precondition') {
-            console.warn('Persistence: Multiple tabs open');
-        } else if (err.code === 'unimplemented') {
-            console.warn('Persistence not available');
-        }
-    });
+// Export funkcji
+window.loadFirebaseConfig = loadFirebaseConfig;
+window.saveFirebaseConfig = saveFirebaseConfig;
+window.initializeFirebase = initializeFirebase;
 
-// Export globalny
-window.auth = auth;
-window.db = db;
-window.ADMIN_UID = ADMIN_UID;
-window.resetInactivityTimer = resetInactivityTimer;
+console.log('✅ Firebase config module loaded');
 
 console.log('✅ Firebase initialized successfully');
 console.log('Admin UID:', ADMIN_UID);
