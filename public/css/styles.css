@@ -1557,6 +1557,57 @@ body {
     border-bottom: 2px solid var(--border-color);
 }
 
+/* Data Management Sections */
+.data-management-section {
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.data-management-section:hover {
+    border-color: var(--primary-green);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+}
+
+.data-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.data-section-header h4 {
+    color: var(--text-primary);
+    font-size: 16px;
+    margin: 0 0 5px 0;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:active {
+    transform: translateY(0);
+}
+
 /* Theme Selector */
 .theme-selector {
     display: flex;
@@ -1714,4 +1765,51 @@ body.compact-mode .modal-body {
 body.no-animations * {
     animation: none !important;
     transition: none !important;
+}
+
+/* ============================================
+   KREATORY PDF
+   ============================================ */
+.creator-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(14, 209, 69, 0.3);
+}
+
+.training-day,
+.meal-section {
+    animation: fadeIn 0.3s ease;
+}
+
+.exercise-row,
+.product-row {
+    transition: all 0.2s ease;
+}
+
+.exercise-row:hover,
+.product-row:hover {
+    background: var(--bg-hover);
+    border-radius: 4px;
+}
+
+#pdfPreview {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+#pdfPreview::-webkit-scrollbar {
+    width: 8px;
+}
+
+#pdfPreview::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#pdfPreview::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+#pdfPreview::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }

@@ -20,7 +20,6 @@ async function loadPricing() {
             servicePricing = pricingDoc.data();
             window.servicePricing = servicePricing; // Aktualizuj window.servicePricing
         }
-        updatePricingInputs();
     } catch (error) {
         console.error('Error loading pricing:', error);
     }
@@ -56,24 +55,6 @@ async function savePricing() {
     } finally {
         showLoading(false);
     }
-}
-
-// Aktualizuj pola cennika w UI
-function updatePricingInputs() {
-    const inputs = {
-        priceDieta: servicePricing.dieta || 0,
-        pricePlan: servicePricing.plan_treningowy || 0,
-        priceProwadzenie: servicePricing.prowadzenie || 0,
-        priceProwadzeniePierwszy: servicePricing.prowadzenie_pierwszy || 0,
-        priceWspolpraca: servicePricing.wspolpraca_prywatna || 0
-    };
-    
-    Object.keys(inputs).forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-            input.value = inputs[id];
-        }
-    });
 }
 
 
@@ -380,24 +361,44 @@ async function extendService(clientId, serviceIndex) {
         });
         
         // Automatyczne tworzenie płatności przy przedłużaniu (używa normalnej ceny prowadzenia, nie pierwszej)
+        console.log('🔍 servicePricing:', window.servicePricing);
         const prowadzeniePrice = window.servicePricing?.prowadzenie || 0;
+        console.log('💰 Cena prowadzenia:', prowadzeniePrice);
         
         if (prowadzeniePrice > 0) {
-            const paymentData = {
-                clientId: clientId,
-                clientName: clientData.name || 'Nieznany',
-                amount: prowadzeniePrice,
-                dueDate: firebase.firestore.Timestamp.fromDate(newEndDate),
-                status: 'oczekujace',
-                description: `Przedłużenie prowadzenia o ${days} dni`,
-                createdAt: firebase.firestore.Timestamp.now()
-            };
+            // Oblicz ile płatności utworzyć (każde 30 dni = 1 płatność)
+            const numberOfPayments = Math.ceil(days / 30);
+            const clientName = `${clientData.firstName} ${clientData.lastName}`;
             
-            await window.db.collection('payments').add(paymentData);
-            console.log('✅ Utworzono płatność za przedłużenie:', paymentData);
+            console.log(`📊 Przedłużenie o ${days} dni = ${numberOfPayments} płatności po ${prowadzeniePrice} zł`);
+            
+            for (let i = 0; i < numberOfPayments; i++) {
+                const paymentDate = new Date(newEndDate);
+                paymentDate.setDate(paymentDate.getDate() - (numberOfPayments - i - 1) * 30);
+                
+                const paymentData = {
+                    clientId: clientId,
+                    clientName: clientName,
+                    serviceType: 'prowadzenie',
+                    amount: prowadzeniePrice,
+                    discount: 0,
+                    finalAmount: prowadzeniePrice,
+                    date: firebase.firestore.Timestamp.fromDate(paymentDate),
+                    status: 'oczekujace',
+                    notes: `Przedłużenie prowadzenia - miesiąc ${i + 1}/${numberOfPayments}`,
+                    createdAt: firebase.firestore.Timestamp.now()
+                };
+                
+                await window.db.collection('payments').add(paymentData);
+                console.log(`✅ Utworzono płatność ${i + 1}/${numberOfPayments}:`, paymentData);
+            }
+            
+            const totalAmount = prowadzeniePrice * numberOfPayments;
+            showToast(`Prowadzenie przedłużone o ${days} dni. Dodano ${numberOfPayments} płatności (${totalAmount} zł)`, 'success');
+        } else {
+            console.warn('⚠️ Nie utworzono płatności - cena prowadzenia = 0 lub brak cennika');
+            showToast(`Prowadzenie przedłużone o ${days} dni. UWAGA: Nie dodano płatności (ustaw cenę w Ustawieniach)`, 'warning');
         }
-        
-        showToast(`Prowadzenie przedłużone o ${days} dni. Dodano płatność: ${prowadzeniePrice} zł`, 'success');
         
         if (window.currentClient && window.currentClient.id === clientId) {
             openClientDetails(clientId);

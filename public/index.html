@@ -16,76 +16,12 @@
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-    <!-- Ekran konfiguracji Firebase (pierwsza instalacja) -->
-    <div id="firebaseSetupScreen" class="page" style="display: none;">
-        <div class="login-container">
-            <div class="login-box" style="max-width: 600px;">
-                <h1 style="color: var(--primary-green);">🔧 Konfiguracja Aplikacji</h1>
-                <p style="color: var(--text-gray); margin-bottom: 20px;">
-                    Witaj! To pierwsza instalacja. Wprowadź dane swojego projektu Firebase.
-                </p>
-                
-                <div class="firebase-setup-form">
-                    <div class="form-group">
-                        <label>API Key *</label>
-                        <input type="text" id="setup_apiKey" placeholder="AIzaSy..." required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Auth Domain *</label>
-                        <input type="text" id="setup_authDomain" placeholder="twoj-projekt.firebaseapp.com" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Project ID *</label>
-                        <input type="text" id="setup_projectId" placeholder="twoj-projekt" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Storage Bucket *</label>
-                        <input type="text" id="setup_storageBucket" placeholder="twoj-projekt.firebasestorage.app" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Messaging Sender ID *</label>
-                        <input type="text" id="setup_messagingSenderId" placeholder="123456789" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>App ID *</label>
-                        <input type="text" id="setup_appId" placeholder="1:123456789:web:..." required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Admin UID (opcjonalnie)</label>
-                        <input type="text" id="setup_adminUID" placeholder="Zostaw puste lub wprowadź UID">
-                        <small class="form-hint">UID administratora z Firebase Authentication</small>
-                    </div>
-                    
-                    <button id="saveFirebaseSetupBtn" class="btn-primary" style="width: 100%; margin-top: 20px;">
-                        💾 Zapisz i uruchom aplikację
-                    </button>
-                    
-                    <div id="setupError" class="error-message" style="margin-top: 15px;"></div>
-                    
-                    <details style="margin-top: 20px; color: var(--text-gray); font-size: 13px;">
-                        <summary style="cursor: pointer; color: var(--primary-green);">📖 Gdzie znaleźć te dane?</summary>
-                        <ol style="margin-top: 10px; line-height: 1.8;">
-                            <li>Wejdź na <a href="https://console.firebase.google.com" target="_blank" style="color: var(--primary-green);">console.firebase.google.com</a></li>
-                            <li>Wybierz swój projekt</li>
-                            <li>Kliknij ikonę koła zębatego → <strong>Project settings</strong></li>
-                            <li>Przewiń w dół do sekcji <strong>"Your apps"</strong></li>
-                            <li>Wybierz aplikację webową lub utwórz nową</li>
-                            <li>Skopiuj dane z <strong>firebaseConfig</strong></li>
-                        </ol>
-                    </details>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Strona logowania -->
     <div id="loginPage" class="page active">
         <div class="login-container">
@@ -131,6 +67,7 @@
             <button class="tab-btn" data-tab="clients">Podopieczni</button>
             <button class="tab-btn" data-tab="services">Usługi</button>
             <button class="tab-btn" data-tab="finances">Finanse</button>
+            <button class="tab-btn" data-tab="creators">📄 Kreatory</button>
             <button class="tab-btn" data-tab="notes">Notatki</button>
             <button class="tab-btn" data-tab="measurements">Pomiary</button>
         </nav>
@@ -254,38 +191,6 @@
             <div id="services-tab" class="tab-content">
                 <h2>Zarządzanie usługami</h2>
                 
-                <!-- Cennik usług -->
-                <div class="services-pricing">
-                    <div class="section-header">
-                        <h3>💰 Cennik usług</h3>
-                        <button id="savePricingBtn" class="btn-primary">Zapisz cennik</button>
-                    </div>
-                    <div class="pricing-grid">
-                        <div class="pricing-card">
-                            <h4>🥗 Dieta</h4>
-                            <input type="number" id="priceDieta" class="price-input" step="0.01" min="0" placeholder="Cena w PLN">
-                        </div>
-                        <div class="pricing-card">
-                            <h4>💪 Plan treningowy</h4>
-                            <input type="number" id="pricePlan" class="price-input" step="0.01" min="0" placeholder="Cena w PLN">
-                        </div>
-                        <div class="pricing-card">
-                            <h4>📊 Prowadzenie - pierwszy miesiąc</h4>
-                            <input type="number" id="priceProwadzeniePierwszy" class="price-input" step="0.01" min="0" placeholder="Cena w PLN">
-                            <small>Automatycznie ustawiana dla nowych podopiecznych</small>
-                        </div>
-                        <div class="pricing-card">
-                            <h4>📊 Prowadzenie - kolejne miesiące</h4>
-                            <input type="number" id="priceProwadzenie" class="price-input" step="0.01" min="0" placeholder="Cena w PLN">
-                        </div>
-                        <div class="pricing-card">
-                            <h4>🤝 Współpraca prywatna</h4>
-                            <input type="number" id="priceWspolpraca" class="price-input" step="0.01" min="0" placeholder="Cena domyślna">
-                            <small>Można zmienić przy dodawaniu usługi</small>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="services-overview">
                     <div class="service-category">
                         <h3>Prowadzenie - Status</h3>
@@ -310,6 +215,25 @@
                         <div id="servicesHistory" class="history-list">
                             <!-- Dynamicznie generowane -->
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KREATORY PDF -->
+            <div id="creators-tab" class="tab-content">
+                <h2>📄 Kreatory planów i diet</h2>
+                
+                <div class="creators-menu" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
+                    <div class="creator-card" style="background: var(--card-bg); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: transform 0.2s;" onclick="openTrainingCreator()">
+                        <div style="font-size: 64px; margin-bottom: 15px;">💪</div>
+                        <h3 style="margin: 0 0 10px 0;">Plan treningowy</h3>
+                        <p style="color: var(--text-gray); margin: 0;">Stwórz profesjonalny plan treningowy z podziałem na dni i ćwiczenia</p>
+                    </div>
+                    
+                    <div class="creator-card" style="background: var(--card-bg); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: transform 0.2s;" onclick="openDietCreator()">
+                        <div style="font-size: 64px; margin-bottom: 15px;">🥗</div>
+                        <h3 style="margin: 0 0 10px 0;">Plan dietetyczny</h3>
+                        <p style="color: var(--text-gray); margin: 0;">Stwórz plan żywieniowy z posiłkami i makroskładnikami</p>
                     </div>
                 </div>
             </div>
@@ -812,6 +736,12 @@
                         <label>Kwota (PLN) *</label>
                         <input type="number" id="paymentAmount" step="0.01" min="0" required placeholder="np. 500.00">
                     </div>
+                    
+                    <div class="form-group">
+                        <label>Rabat (PLN)</label>
+                        <input type="number" id="paymentDiscount" step="0.01" min="0" value="0" placeholder="np. 50.00">
+                        <small class="form-hint">Kwota pomniejszająca płatność</small>
+                    </div>
 
                     <div class="form-group">
                         <label>Data płatności *</label>
@@ -1192,7 +1122,7 @@
                 <div class="settings-tabs">
                     <button class="settings-tab-btn active" data-settings-tab="general">🏢 Ogólne</button>
                     <button class="settings-tab-btn" data-settings-tab="services">💼 Usługi i Cennik</button>
-                    <button class="settings-tab-btn" data-settings-tab="firebase">🔥 Konfiguracja Firebase</button>
+                    <button class="settings-tab-btn" data-settings-tab="data">🗑️ Zarządzanie danymi</button>
                     <button class="settings-tab-btn" data-settings-tab="appearance">🎨 Wygląd</button>
                 </div>
 
@@ -1274,72 +1204,100 @@
                         <button class="btn-primary" onclick="savePricingSettings()">💾 Zapisz cennik</button>
                     </div>
 
-                    <!-- Zakładka: Konfiguracja Firebase -->
-                    <div id="settings-firebase" class="settings-tab-content">
-                        <h3>Konfiguracja połączenia Firebase</h3>
-                        <p style="color: var(--text-gray); margin-bottom: 20px;">
-                            ⚠️ <strong>Uwaga:</strong> Zmiana tych ustawień może spowodować utratę połączenia z bazą danych. 
-                            Upewnij się, że wprowadzasz prawidłowe dane!
+                    <!-- Zakładka: Zarządzanie danymi -->
+                    <div id="settings-data" class="settings-tab-content">
+                        <h3>Zarządzanie danymi i historią</h3>
+                        <p style="color: var(--text-gray); margin-bottom: 30px;">
+                            ⚠️ <strong>Uwaga:</strong> Operacje usuwania są nieodwracalne! Upewnij się, że chcesz trwale usunąć wybrane dane.
                         </p>
                         
-                        <div class="form-group">
-                            <label>API Key *</label>
-                            <input type="text" id="firebase_apiKey" placeholder="AIzaSy..." required>
+                        <!-- Usuwanie historii usług -->
+                        <div class="data-management-section">
+                            <div class="data-section-header">
+                                <div>
+                                    <h4>📋 Historia usług</h4>
+                                    <p style="color: var(--text-gray); font-size: 14px; margin-top: 5px;">
+                                        Usuń historię zakończonych usług dla wszystkich klientów
+                                    </p>
+                                </div>
+                                <button class="btn-danger" onclick="deleteAllCompletedServices()">
+                                    🗑️ Usuń zakończone usługi
+                                </button>
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label>Auth Domain *</label>
-                            <input type="text" id="firebase_authDomain" placeholder="twoj-projekt.firebaseapp.com" required>
+                        <!-- Usuwanie historii płatności -->
+                        <div class="data-management-section">
+                            <div class="data-section-header">
+                                <div>
+                                    <h4>💰 Historia płatności</h4>
+                                    <p style="color: var(--text-gray); font-size: 14px; margin-top: 5px;">
+                                        Usuń wszystkie płatności ze statusem "opłacone"
+                                    </p>
+                                </div>
+                                <button class="btn-danger" onclick="deleteAllPaidPayments()">
+                                    🗑️ Usuń opłacone płatności
+                                </button>
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label>Project ID *</label>
-                            <input type="text" id="firebase_projectId" placeholder="twoj-projekt" required>
+                        <!-- Usuwanie historii notatek -->
+                        <div class="data-management-section">
+                            <div class="data-section-header">
+                                <div>
+                                    <h4>📝 Historia notatek</h4>
+                                    <p style="color: var(--text-gray); font-size: 14px; margin-top: 5px;">
+                                        Usuń wszystkie notatki dla wszystkich klientów
+                                    </p>
+                                </div>
+                                <button class="btn-danger" onclick="deleteAllNotes()">
+                                    🗑️ Usuń wszystkie notatki
+                                </button>
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label>Storage Bucket *</label>
-                            <input type="text" id="firebase_storageBucket" placeholder="twoj-projekt.firebasestorage.app" required>
+                        <!-- Usuwanie historii pomiarów -->
+                        <div class="data-management-section">
+                            <div class="data-section-header">
+                                <div>
+                                    <h4>📊 Historia pomiarów</h4>
+                                    <p style="color: var(--text-gray); font-size: 14px; margin-top: 5px;">
+                                        Usuń wszystkie pomiary dla wszystkich klientów
+                                    </p>
+                                </div>
+                                <button class="btn-danger" onclick="deleteAllMeasurements()">
+                                    🗑️ Usuń wszystkie pomiary
+                                </button>
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label>Messaging Sender ID *</label>
-                            <input type="text" id="firebase_messagingSenderId" placeholder="123456789" required>
+                        <!-- Opcja nuklearna -->
+                        <div class="data-management-section" style="border: 2px solid var(--danger); background: rgba(239, 68, 68, 0.05);">
+                            <div class="data-section-header">
+                                <div>
+                                    <h4 style="color: var(--danger);">☢️ RESET CAŁEJ APLIKACJI</h4>
+                                    <p style="color: var(--danger); font-size: 14px; margin-top: 5px; font-weight: bold;">
+                                        ⚠️ NIEBEZPIECZNE! Usuń wszystkich klientów i całą historię danych
+                                    </p>
+                                    <p style="color: var(--text-gray); font-size: 13px; margin-top: 8px;">
+                                        Ta opcja usunie: wszystkich klientów, usługi, płatności, notatki, pomiary, ankiety.
+                                        <strong>Zostaną tylko: ustawienia aplikacji i cennik.</strong>
+                                    </p>
+                                </div>
+                                <button class="btn-danger" style="background: var(--danger); font-weight: bold;" onclick="resetAllData()">
+                                    ☢️ RESET WSZYSTKIEGO
+                                </button>
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label>App ID *</label>
-                            <input type="text" id="firebase_appId" placeholder="1:123456789:web:..." required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Admin UID</label>
-                            <input type="text" id="firebase_adminUID" placeholder="UID administratora">
-                            <small class="form-hint">UID użytkownika z Firebase Authentication z pełnymi uprawnieniami</small>
-                        </div>
-                        
-                        <div style="background: var(--bg-hover); border-left: 4px solid var(--warning); padding: 15px; border-radius: 8px; margin: 20px 0;">
-                            <strong style="color: var(--warning);">⚠️ Ostrzeżenie:</strong>
-                            <p style="color: var(--text-gray); margin-top: 5px; font-size: 14px;">
-                                Po zapisaniu nowej konfiguracji strona zostanie automatycznie odświeżona, 
-                                a Ty zostaniesz wylogowany. Będziesz musiał zalogować się ponownie przy użyciu 
-                                konta z nowego projektu Firebase.
+                        <div style="background: var(--bg-hover); border-left: 4px solid var(--warning); padding: 15px; border-radius: 8px; margin-top: 30px;">
+                            <strong style="color: var(--warning);">💡 Wskazówka:</strong>
+                            <p style="color: var(--text-gray); margin-top: 8px; font-size: 14px; line-height: 1.6;">
+                                • Przed każdym usunięciem zobaczysz potwierdzenie<br>
+                                • Usuwanie jest trwałe i nieodwracalne<br>
+                                • Zalecamy robienie kopii zapasowych bazy danych Firebase przed masowym usuwaniem
                             </p>
                         </div>
-                        
-                        <button class="btn-primary" onclick="saveFirebaseConfig()">💾 Zapisz konfigurację Firebase</button>
-                        
-                        <details style="margin-top: 20px; color: var(--text-gray); font-size: 13px;">
-                            <summary style="cursor: pointer; color: var(--primary-green);">📖 Gdzie znaleźć te dane?</summary>
-                            <ol style="margin-top: 10px; line-height: 1.8;">
-                                <li>Wejdź na <a href="https://console.firebase.google.com" target="_blank" style="color: var(--primary-green);">console.firebase.google.com</a></li>
-                                <li>Wybierz swój projekt</li>
-                                <li>Kliknij ikonę koła zębatego → <strong>Project settings</strong></li>
-                                <li>Przewiń w dół do sekcji <strong>"Your apps"</strong></li>
-                                <li>Wybierz aplikację webową lub utwórz nową</li>
-                                <li>Skopiuj dane z <strong>firebaseConfig</strong></li>
-                            </ol>
-                        </details>
                     </div>
 
                     <!-- Zakładka: Wygląd -->
@@ -1405,7 +1363,6 @@
 
     <!-- App scripts -->
     <script src="js/firebase-config.js"></script>
-    <script src="js/firebase-setup.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/clients.js"></script>
     <script src="js/services.js"></script>
@@ -1416,6 +1373,7 @@
     <script src="js/measurements.js"></script>
     <script src="js/charts.js"></script>
     <script src="js/notifications.js"></script>
+    <script src="js/pdf-creators.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

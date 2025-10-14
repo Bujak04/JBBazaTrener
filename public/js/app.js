@@ -170,16 +170,6 @@ function initializeModals() {
             openPaymentModal();
         });
     }
-    
-    // Przycisk zapisz cennik
-    const savePricingBtn = document.getElementById('savePricingBtn');
-    if (savePricingBtn) {
-        savePricingBtn.addEventListener('click', () => {
-            if (typeof window.savePricing === 'function') {
-                window.savePricing();
-            }
-        });
-    }
 }
 
 // Inicjalizacja formularzy

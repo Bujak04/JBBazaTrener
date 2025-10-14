@@ -94,9 +94,6 @@ async function loadAllSettings() {
         // Załaduj cennik
         await loadPricingIntoSettings();
         
-        // Załaduj konfigurację Firebase
-        loadFirebaseConfigIntoSettings();
-        
     } catch (error) {
         console.error('Error loading settings:', error);
         showToast('Błąd ładowania ustawień: ' + error.message, 'error');
@@ -391,77 +388,256 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
-// KONFIGURACJA FIREBASE
+// ZARZĄDZANIE DANYMI - USUWANIE HISTORII
 // ============================================
 
-function loadFirebaseConfigIntoSettings() {
-    const config = window.loadFirebaseConfig();
+// Usuń wszystkie zakończone usługi
+async function deleteAllCompletedServices() {
+    const confirmation = confirm(
+        '⚠️ UWAGA!\n\n' +
+        'Czy na pewno chcesz usunąć WSZYSTKIE ZAKOŃCZONE USŁUGI dla wszystkich klientów?\n\n' +
+        'Ta operacja:\n' +
+        '• Usunie usługi ze statusem "zakonczone"\n' +
+        '• Jest NIEODWRACALNA\n' +
+        '• Może zająć kilka sekund\n\n' +
+        'Kliknij OK aby kontynuować.'
+    );
     
-    if (config) {
-        document.getElementById('firebase_apiKey').value = config.apiKey || '';
-        document.getElementById('firebase_authDomain').value = config.authDomain || '';
-        document.getElementById('firebase_projectId').value = config.projectId || '';
-        document.getElementById('firebase_storageBucket').value = config.storageBucket || '';
-        document.getElementById('firebase_messagingSenderId').value = config.messagingSenderId || '';
-        document.getElementById('firebase_appId').value = config.appId || '';
-    }
+    if (!confirmation) return;
     
-    const adminUID = localStorage.getItem('adminUID');
-    if (adminUID) {
-        document.getElementById('firebase_adminUID').value = adminUID;
+    try {
+        showLoading(true);
+        
+        const clientsSnapshot = await window.db.collection('clients').get();
+        let deletedCount = 0;
+        
+        for (const clientDoc of clientsSnapshot.docs) {
+            const clientData = clientDoc.data();
+            const services = clientData.services || [];
+            
+            // Filtruj tylko aktywne usługi
+            const activeServices = services.filter(s => s.status !== 'zakonczone');
+            deletedCount += services.length - activeServices.length;
+            
+            if (activeServices.length !== services.length) {
+                await window.db.collection('clients').doc(clientDoc.id).update({
+                    services: activeServices
+                });
+            }
+        }
+        
+        showToast(`Usunięto ${deletedCount} zakończonych usług`, 'success');
+        
+        // Odśwież widok jeśli jesteśmy w panelu klientów
+        if (typeof window.loadClients === 'function') {
+            window.loadClients();
+        }
+    } catch (error) {
+        console.error('Error deleting completed services:', error);
+        showToast('Błąd usuwania usług: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
     }
 }
 
-function saveFirebaseConfig() {
-    const config = {
-        apiKey: document.getElementById('firebase_apiKey').value.trim(),
-        authDomain: document.getElementById('firebase_authDomain').value.trim(),
-        projectId: document.getElementById('firebase_projectId').value.trim(),
-        storageBucket: document.getElementById('firebase_storageBucket').value.trim(),
-        messagingSenderId: document.getElementById('firebase_messagingSenderId').value.trim(),
-        appId: document.getElementById('firebase_appId').value.trim()
-    };
+// Usuń wszystkie opłacone płatności
+async function deleteAllPaidPayments() {
+    const confirmation = confirm(
+        '⚠️ UWAGA!\n\n' +
+        'Czy na pewno chcesz usunąć WSZYSTKIE OPŁACONE PŁATNOŚCI?\n\n' +
+        'Ta operacja:\n' +
+        '• Usunie płatności ze statusem "oplacone"\n' +
+        '• Jest NIEODWRACALNA\n' +
+        '• Może zająć kilka sekund\n\n' +
+        'Kliknij OK aby kontynuować.'
+    );
     
-    const adminUID = document.getElementById('firebase_adminUID').value.trim();
+    if (!confirmation) return;
     
-    // Walidacja
-    if (!config.apiKey || !config.authDomain || !config.projectId || 
-        !config.storageBucket || !config.messagingSenderId || !config.appId) {
-        showToast('Wszystkie pola Firebase są wymagane!', 'error');
-        return;
+    try {
+        showLoading(true);
+        
+        const paymentsSnapshot = await window.db.collection('payments')
+            .where('status', '==', 'oplacone')
+            .get();
+        
+        const batch = window.db.batch();
+        paymentsSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        
+        await batch.commit();
+        
+        showToast(`Usunięto ${paymentsSnapshot.size} opłaconych płatności`, 'success');
+        
+        // Odśwież widok jeśli jesteśmy w panelu finansów
+        if (typeof window.loadPayments === 'function') {
+            window.loadPayments();
+        }
+    } catch (error) {
+        console.error('Error deleting paid payments:', error);
+        showToast('Błąd usuwania płatności: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
     }
+}
+
+// Usuń wszystkie notatki
+async function deleteAllNotes() {
+    const confirmation = confirm(
+        '⚠️ UWAGA!\n\n' +
+        'Czy na pewno chcesz usunąć WSZYSTKIE NOTATKI dla wszystkich klientów?\n\n' +
+        'Ta operacja:\n' +
+        '• Usunie wszystkie notatki\n' +
+        '• Jest NIEODWRACALNA\n' +
+        '• Może zająć kilka sekund\n\n' +
+        'Kliknij OK aby kontynuować.'
+    );
     
-    // Potwierdź zmianę
-    if (!confirm('⚠️ UWAGA!\n\nZmiana konfiguracji Firebase spowoduje:\n- Wylogowanie z aplikacji\n- Odświeżenie strony\n- Konieczność zalogowania się ponownie\n\nCzy na pewno chcesz kontynuować?')) {
+    if (!confirmation) return;
+    
+    try {
+        showLoading(true);
+        
+        const clientsSnapshot = await window.db.collection('clients').get();
+        let deletedCount = 0;
+        
+        for (const clientDoc of clientsSnapshot.docs) {
+            const clientData = clientDoc.data();
+            const notes = clientData.notes || [];
+            deletedCount += notes.length;
+            
+            if (notes.length > 0) {
+                await window.db.collection('clients').doc(clientDoc.id).update({
+                    notes: []
+                });
+            }
+        }
+        
+        showToast(`Usunięto ${deletedCount} notatek`, 'success');
+        
+        // Odśwież widok jeśli mamy otwartego klienta
+        if (typeof window.loadClientDetails === 'function' && window.currentClientId) {
+            window.loadClientDetails(window.currentClientId);
+        }
+    } catch (error) {
+        console.error('Error deleting notes:', error);
+        showToast('Błąd usuwania notatek: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Usuń wszystkie pomiary
+async function deleteAllMeasurements() {
+    const confirmation = confirm(
+        '⚠️ UWAGA!\n\n' +
+        'Czy na pewno chcesz usunąć WSZYSTKIE POMIARY dla wszystkich klientów?\n\n' +
+        'Ta operacja:\n' +
+        '• Usunie wszystkie pomiary\n' +
+        '• Jest NIEODWRACALNA\n' +
+        '• Może zająć kilka sekund\n\n' +
+        'Kliknij OK aby kontynuować.'
+    );
+    
+    if (!confirmation) return;
+    
+    try {
+        showLoading(true);
+        
+        const clientsSnapshot = await window.db.collection('clients').get();
+        let deletedCount = 0;
+        
+        for (const clientDoc of clientsSnapshot.docs) {
+            const clientData = clientDoc.data();
+            const measurements = clientData.measurements || [];
+            deletedCount += measurements.length;
+            
+            if (measurements.length > 0) {
+                await window.db.collection('clients').doc(clientDoc.id).update({
+                    measurements: []
+                });
+            }
+        }
+        
+        showToast(`Usunięto ${deletedCount} pomiarów`, 'success');
+        
+        // Odśwież widok jeśli mamy otwartego klienta
+        if (typeof window.loadClientDetails === 'function' && window.currentClientId) {
+            window.loadClientDetails(window.currentClientId);
+        }
+    } catch (error) {
+        console.error('Error deleting measurements:', error);
+        showToast('Błąd usuwania pomiarów: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// RESET WSZYSTKIEGO - opcja nuklearna
+async function resetAllData() {
+    const firstConfirmation = confirm(
+        '☢️ NIEBEZPIECZNA OPERACJA!\n\n' +
+        'Czy NA PEWNO chcesz usunąć WSZYSTKICH KLIENTÓW i CAŁĄ HISTORIĘ DANYCH?\n\n' +
+        'Ta operacja usunie:\n' +
+        '• Wszystkich klientów\n' +
+        '• Wszystkie usługi\n' +
+        '• Wszystkie płatności\n' +
+        '• Wszystkie notatki\n' +
+        '• Wszystkie pomiary\n' +
+        '• Wszystkie ankiety\n\n' +
+        'ZOSTANIE TYLKO: Cennik i ustawienia aplikacji\n\n' +
+        'Ta operacja jest NIEODWRACALNA!\n\n' +
+        'Kliknij OK aby kontynuować do ostatecznego potwierdzenia.'
+    );
+    
+    if (!firstConfirmation) return;
+    
+    const finalConfirmation = prompt(
+        '☢️ OSTATNIE OSTRZEŻENIE!\n\n' +
+        'To usunie WSZYSTKO!\n\n' +
+        'Wpisz "RESET" (wielkimi literami) aby potwierdzić:'
+    );
+    
+    if (finalConfirmation !== 'RESET') {
+        showToast('Operacja anulowana', 'info');
         return;
     }
     
     try {
-        // Zapisz konfigurację
-        window.saveFirebaseConfig(config);
+        showLoading(true);
         
-        // Zapisz Admin UID
-        if (adminUID) {
-            localStorage.setItem('adminUID', adminUID);
-        } else {
-            localStorage.removeItem('adminUID');
-        }
+        // Usuń wszystkich klientów
+        const clientsSnapshot = await window.db.collection('clients').get();
+        const clientBatch = window.db.batch();
+        clientsSnapshot.docs.forEach(doc => {
+            clientBatch.delete(doc.ref);
+        });
+        await clientBatch.commit();
         
-        showToast('Konfiguracja Firebase zapisana! Odświeżam stronę...', 'success');
+        // Usuń wszystkie płatności
+        const paymentsSnapshot = await window.db.collection('payments').get();
+        const paymentBatch = window.db.batch();
+        paymentsSnapshot.docs.forEach(doc => {
+            paymentBatch.delete(doc.ref);
+        });
+        await paymentBatch.commit();
         
-        // Wyloguj użytkownika
-        if (window.auth && window.auth.currentUser) {
-            window.auth.signOut();
-        }
+        showToast(
+            `RESET ZAKOŃCZONY!\n\nUsunięto:\n• ${clientsSnapshot.size} klientów\n• ${paymentsSnapshot.size} płatności`,
+            'success'
+        );
         
-        // Odśwież stronę za 2 sekundy
+        // Odśwież aplikację
         setTimeout(() => {
             location.reload();
         }, 2000);
         
     } catch (error) {
-        console.error('Error saving Firebase config:', error);
-        showToast('Błąd zapisywania konfiguracji: ' + error.message, 'error');
+        console.error('Error resetting data:', error);
+        showToast('Błąd resetowania danych: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
     }
 }
 
@@ -473,6 +649,10 @@ window.savePricingSettings = savePricingSettings;
 window.saveAppearanceSettings = saveAppearanceSettings;
 window.selectTheme = selectTheme;
 window.selectAccentColor = selectAccentColor;
-window.saveFirebaseConfig = saveFirebaseConfig;
+window.deleteAllCompletedServices = deleteAllCompletedServices;
+window.deleteAllPaidPayments = deleteAllPaidPayments;
+window.deleteAllNotes = deleteAllNotes;
+window.deleteAllMeasurements = deleteAllMeasurements;
+window.resetAllData = resetAllData;
 
 console.log('✅ Settings.js loaded');

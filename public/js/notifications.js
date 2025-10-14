@@ -1,8 +1,58 @@
 // This file handles push notifications using Firebase Cloud Messaging (FCM) for subscription reminders.
 
-const messaging = firebase.messaging();
+let messaging;
+let notificationsRetryCount = 0;
+const maxNotificationsRetries = 30; // 30 * 200ms = 6 sekund maksymalnie
+
+function initializeNotifications() {
+    // Sprawdź czy Firebase jest gotowy
+    if (!firebase || !firebase.messaging) {
+        notificationsRetryCount++;
+        
+        if (notificationsRetryCount >= maxNotificationsRetries) {
+            console.warn('⚠️ Firebase messaging not available - skipping notifications');
+            return; // Przestań próbować
+        }
+        
+        console.warn(`⚠️ Firebase messaging not ready yet, waiting... (${notificationsRetryCount}/${maxNotificationsRetries})`);
+        setTimeout(initializeNotifications, 200);
+        return;
+    }
+    
+    try {
+        messaging = firebase.messaging();
+        
+        messaging.onMessage((payload) => {
+            console.log('Message received. ', payload);
+            // Customize notification here
+            const notificationTitle = payload.notification.title;
+            const notificationOptions = {
+                body: payload.notification.body,
+                icon: '/assets/icons/icon-192x192.png'
+            };
+
+            new Notification(notificationTitle, notificationOptions);
+        });
+        
+        console.log('✅ Notifications initialized');
+    } catch (error) {
+        console.error('Error initializing notifications:', error);
+    }
+}
+
+// Uruchom po załadowaniu DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeNotifications);
+} else {
+    initializeNotifications();
+}
 
 function initializeFCM() {
+    if (!messaging) {
+        console.error('Messaging not initialized');
+        return;
+    }
+    
     messaging.requestPermission()
         .then(() => {
             console.log('Notification permission granted.');
@@ -16,18 +66,6 @@ function initializeFCM() {
             console.error('Error getting notification permission or token:', error);
         });
 }
-
-messaging.onMessage((payload) => {
-    console.log('Message received. ', payload);
-    // Customize notification here
-    const notificationTitle = payload.notification.title;
-    const notificationOptions = {
-        body: payload.notification.body,
-        icon: '/assets/icons/icon-192x192.png'
-    };
-
-    new Notification(notificationTitle, notificationOptions);
-});
 
 // Call this function to initialize FCM
 initializeFCM();

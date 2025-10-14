@@ -16,8 +16,8 @@ window.auth.onAuthStateChanged((user) => {
             }
             
             // Rozpocznij licznik nieaktywności
-            if (typeof window.resetInactivityTimer === 'function') {
-                window.resetInactivityTimer();
+            if (typeof window.startInactivityTimer === 'function') {
+                window.startInactivityTimer();
             }
         } else {
             console.error('❌ User is not admin');

@@ -62,6 +62,7 @@ async function handlePaymentSubmit(e) {
     const clientId = document.getElementById('paymentClientSelect').value;
     const serviceType = document.getElementById('paymentServiceType').value;
     const amount = parseFloat(document.getElementById('paymentAmount').value);
+    const discount = parseFloat(document.getElementById('paymentDiscount').value) || 0;
     const date = document.getElementById('paymentDate').value;
     const status = document.getElementById('paymentStatus').value;
     const notes = document.getElementById('paymentNotes').value.trim();
@@ -83,6 +84,8 @@ async function handlePaymentSubmit(e) {
             clientName: `${clientData.firstName} ${clientData.lastName}`,
             serviceType: serviceType,
             amount: amount,
+            discount: discount,
+            finalAmount: amount - discount,
             date: firebase.firestore.Timestamp.fromDate(new Date(date)),
             status: status,
             notes: notes,
@@ -117,9 +120,35 @@ async function loadPayments() {
             .get();
         
         const payments = [];
+        const batch = window.db.batch();
+        let needsMigration = false;
+        
         snapshot.forEach(doc => {
-            payments.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            
+            // Automatyczna migracja starych płatności bez discount i finalAmount
+            if (data.discount === undefined || data.finalAmount === undefined) {
+                const discount = data.discount || 0;
+                const finalAmount = data.amount - discount;
+                
+                batch.update(doc.ref, {
+                    discount: discount,
+                    finalAmount: finalAmount
+                });
+                
+                needsMigration = true;
+                data.discount = discount;
+                data.finalAmount = finalAmount;
+            }
+            
+            payments.push({ id: doc.id, ...data });
         });
+        
+        // Zapisz migrację jeśli była potrzebna
+        if (needsMigration) {
+            await batch.commit();
+            console.log('✅ Zmigrowano stare płatności (dodano discount i finalAmount)');
+        }
         
         renderPaymentsList(payments);
         calculateFinanceStats(payments);
@@ -157,6 +186,9 @@ function renderPaymentsList(payments) {
         const statusLabel = payment.status === 'oplacone' ? '✅ Opłacone' : 
                            payment.status === 'oczekujace' ? '⏳ Oczekujące' : '❌ Zaległość';
         
+        const discount = payment.discount || 0;
+        const finalAmount = payment.amount - discount;
+        
         return `
             <div class="payment-card" style="background: var(--card-bg); border-radius: 10px; padding: 20px; margin-bottom: 15px; border-left: 4px solid var(--primary-green);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -167,9 +199,21 @@ function renderPaymentsList(payments) {
                         </p>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 24px; font-weight: 600; color: var(--primary-green); margin-bottom: 5px;">
-                            ${payment.amount.toFixed(2)} zł
-                        </div>
+                        ${discount > 0 ? `
+                            <div style="font-size: 14px; color: var(--text-gray); text-decoration: line-through; margin-bottom: 2px;">
+                                ${payment.amount.toFixed(2)} zł
+                            </div>
+                            <div style="font-size: 13px; color: var(--danger); margin-bottom: 2px;">
+                                -${discount.toFixed(2)} zł rabatu
+                            </div>
+                            <div style="font-size: 24px; font-weight: 600; color: var(--primary-green); margin-bottom: 5px;">
+                                ${finalAmount.toFixed(2)} zł
+                            </div>
+                        ` : `
+                            <div style="font-size: 24px; font-weight: 600; color: var(--primary-green); margin-bottom: 5px;">
+                                ${payment.amount.toFixed(2)} zł
+                            </div>
+                        `}
                         <span class="client-status status-${statusClass}">${statusLabel}</span>
                     </div>
                 </div>
@@ -194,15 +238,18 @@ function calculateFinanceStats(payments) {
     const currentYear = now.getFullYear();
     
     payments.forEach(payment => {
+        const discount = payment.discount || 0;
+        const finalAmount = payment.amount - discount;
+        
         if (payment.status === 'oplacone') {
-            totalRevenue += payment.amount;
+            totalRevenue += finalAmount;
             
             const paymentDate = payment.date.toDate ? payment.date.toDate() : new Date(payment.date);
             if (paymentDate.getMonth() === currentMonth && paymentDate.getFullYear() === currentYear) {
-                paidThisMonth += payment.amount;
+                paidThisMonth += finalAmount;
             }
         } else {
-            pendingPayments += payment.amount;
+            pendingPayments += finalAmount;
         }
     });
     
@@ -245,6 +292,7 @@ async function editPayment(paymentId) {
         
         const payment = paymentDoc.data();
         const currentStatus = payment.status;
+        const currentDiscount = payment.discount || 0;
         
         const statusOptions = [
             { value: 'oczekujace', label: '⏳ Oczekujące' },
@@ -259,25 +307,36 @@ async function editPayment(paymentId) {
         const result = await new Promise((resolve) => {
             const modalHtml = `
                 <div class="modal active" id="editPaymentStatusModal" style="z-index: 10000;">
-                    <div class="modal-content" style="max-width: 400px;">
+                    <div class="modal-content" style="max-width: 500px;">
                         <div class="modal-header">
-                            <h2>Zmień status płatności</h2>
+                            <h2>Edytuj płatność</h2>
                             <button class="close-btn" onclick="document.getElementById('editPaymentStatusModal').remove(); ">&times;</button>
                         </div>
                         <div class="modal-body">
                             <p style="margin-bottom: 15px; color: var(--text-gray);">
                                 <strong>${payment.clientName}</strong><br>
-                                ${payment.amount.toFixed(2)} zł
+                                Kwota bazowa: ${payment.amount.toFixed(2)} zł
                             </p>
+                            
                             <div class="form-group">
-                                <label>Nowy status *</label>
+                                <label>Status *</label>
                                 <select id="newPaymentStatus" class="form-control" style="padding: 12px; background: var(--bg-dark); border: 2px solid var(--border-color); border-radius: 8px; color: var(--text-white); font-size: 16px; width: 100%;">
                                     ${optionsHtml}
                                 </select>
                             </div>
+                            
+                            <div class="form-group">
+                                <label>Rabat (zł)</label>
+                                <input type="number" id="paymentDiscount" value="${currentDiscount}" step="0.01" min="0" placeholder="0.00" 
+                                    style="padding: 12px; background: var(--bg-dark); border: 2px solid var(--border-color); border-radius: 8px; color: var(--text-white); font-size: 16px; width: 100%;">
+                                <small style="color: var(--text-gray); font-size: 13px; margin-top: 5px; display: block;">
+                                    Kwota po rabacie: <strong id="finalAmount">${(payment.amount - currentDiscount).toFixed(2)} zł</strong>
+                                </small>
+                            </div>
+                            
                             <div class="modal-actions">
                                 <button type="button" class="btn-secondary" onclick="document.getElementById('editPaymentStatusModal').remove();">Anuluj</button>
-                                <button type="button" class="btn-primary" id="confirmStatusChange">Zapisz</button>
+                                <button type="button" class="btn-primary" id="confirmStatusChange">Zapisz zmiany</button>
                             </div>
                         </div>
                     </div>
@@ -286,20 +345,35 @@ async function editPayment(paymentId) {
             
             document.body.insertAdjacentHTML('beforeend', modalHtml);
             
+            // Aktualizuj kwotę po rabacie na bieżąco
+            const discountInput = document.getElementById('paymentDiscount');
+            const finalAmountSpan = document.getElementById('finalAmount');
+            
+            discountInput.addEventListener('input', () => {
+                const discount = parseFloat(discountInput.value) || 0;
+                const finalAmount = Math.max(0, payment.amount - discount);
+                finalAmountSpan.textContent = finalAmount.toFixed(2) + ' zł';
+            });
+            
             document.getElementById('confirmStatusChange').onclick = () => {
                 const newStatus = document.getElementById('newPaymentStatus').value;
+                const discount = parseFloat(document.getElementById('paymentDiscount').value) || 0;
                 document.getElementById('editPaymentStatusModal').remove();
-                resolve(newStatus);
+                resolve({ status: newStatus, discount: discount });
             };
         });
         
-        if (result && result !== currentStatus) {
-            await window.db.collection('payments').doc(paymentId).update({
-                status: result,
+        if (result) {
+            const updateData = {
+                status: result.status,
+                discount: result.discount,
+                finalAmount: payment.amount - result.discount,
                 updatedAt: firebase.firestore.Timestamp.fromDate(new Date())
-            });
+            };
             
-            showToast('Status płatności zaktualizowany', 'success');
+            await window.db.collection('payments').doc(paymentId).update(updateData);
+            
+            showToast('Płatność zaktualizowana', 'success');
             loadPayments();
         }
         
