@@ -3,6 +3,18 @@
 document.addEventListener('DOMContentLoaded', () => {
     const saveSetupBtn = document.getElementById('saveFirebaseSetupBtn');
     const setupError = document.getElementById('setupError');
+    const setupScreen = document.getElementById('firebaseSetupScreen');
+    
+    // Sprawdź czy Firebase jest już skonfigurowany
+    const existingConfig = window.loadFirebaseConfig();
+    if (existingConfig && window.auth && window.db) {
+        // Firebase już działa - ukryj ekran setupu
+        if (setupScreen) {
+            setupScreen.style.display = 'none';
+        }
+        console.log('✅ Firebase already configured');
+        return;
+    }
     
     if (saveSetupBtn) {
         saveSetupBtn.addEventListener('click', saveFirebaseSetup);

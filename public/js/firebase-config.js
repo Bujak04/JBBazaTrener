@@ -82,13 +82,20 @@ function initializeFirebase(config) {
 firebaseConfig = loadFirebaseConfig();
 
 if (firebaseConfig) {
-    initializeFirebase(firebaseConfig);
+    const initialized = initializeFirebase(firebaseConfig);
+    if (initialized) {
+        console.log('✅ Firebase initialized from saved config');
+    }
 } else {
     console.log('⚠️ Firebase config not found - please configure in settings');
-    // Pokaż ekran konfiguracji
-    window.addEventListener('DOMContentLoaded', () => {
+    // Pokaż ekran konfiguracji tylko jeśli DOM jest gotowy
+    if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', () => {
+            showFirebaseSetupScreen();
+        });
+    } else {
         showFirebaseSetupScreen();
-    });
+    }
 }
 
 // Sesja - automatyczne wylogowanie po 5 minutach nieaktywności
