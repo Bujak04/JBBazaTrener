@@ -271,99 +271,115 @@ function addExercise(dayNum) {
 function updateTrainingPreview() {
     const preview = document.getElementById('pdfPreview');
     
-    const clientId = document.getElementById('trainingClient').value;
-    const title = document.getElementById('trainingTitle').value || 'Plan treningowy';
-    const goal = document.getElementById('trainingGoal').value || '';
+    if (!preview) return;
     
-    let clientName = 'Imię Nazwisko';
-    if (clientId) {
-        const client = window.allClients.find(c => c.id === clientId);
-        if (client) clientName = `${client.firstName} ${client.lastName}`;
-    }
+    const title = document.getElementById('trainingTitle')?.value || 'PLAN TRENINGOWY';
+    const subtitle = document.getElementById('trainingSubtitle')?.value || '5 DNI - SPLIT';
+    const motto = document.getElementById('trainingMotto')?.value || '';
     
     const days = Array.from(document.querySelectorAll('.training-day')).map(dayEl => {
         const dayNum = dayEl.dataset.day;
         return {
             number: dayNum,
-            name: document.getElementById(`dayName${dayNum}`)?.value || `Dzień ${dayNum}`,
+            name: document.getElementById(`dayName${dayNum}`)?.value || `DZIEŃ ${dayNum}`,
             warmup: {
                 part1: document.getElementById(`warmup1_${dayNum}`)?.value || '',
                 part2: document.getElementById(`warmup2_${dayNum}`)?.value || '',
                 part3: document.getElementById(`warmup3_${dayNum}`)?.value || ''
             },
             exercises: Array.from(dayEl.querySelectorAll('.exercise-row')).map(row => ({
-                name: row.querySelector('.exercise-name').value,
-                muscle: row.querySelector('.exercise-muscle').value,
-                sets: row.querySelector('.exercise-sets').value,
-                reps: row.querySelector('.exercise-reps').value,
-                rest: row.querySelector('.exercise-rest').value,
-                rir: row.querySelector('.exercise-rir').value
+                name: row.querySelector('.exercise-name')?.value || '',
+                muscle: row.querySelector('.exercise-muscle')?.value || '',
+                sets: row.querySelector('.exercise-sets')?.value || '',
+                reps: row.querySelector('.exercise-reps')?.value || '',
+                rest: row.querySelector('.exercise-rest')?.value || '',
+                rir: row.querySelector('.exercise-rir')?.value || ''
             })).filter(ex => ex.name)
         };
     });
     
-    // Renderuj podgląd (tylko pierwszy dzień dla uproszczenia)
+    // Renderuj podgląd - styl jak Twój PDF (czarne tło, zielone akcenty)
     const firstDay = days[0] || {};
     
     preview.innerHTML = `
-        <div style="font-family: Arial, sans-serif; color: #000;">
-            <!-- Header -->
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="font-family: 'Gagalin', Arial, sans-serif; font-size: 32px; color: #0ed145; margin: 0 0 10px 0;">${title.toUpperCase()}</h1>
-                <p style="font-size: 18px; margin: 5px 0;"><strong>${clientName}</strong></p>
-                ${goal ? `<p style="font-size: 14px; color: #666; margin: 5px 0;">Cel: ${goal}</p>` : ''}
-                <p style="font-size: 12px; color: #999;">Data utworzenia: ${new Date().toLocaleDateString('pl-PL')}</p>
+        <div style="background: #000; color: #fff; padding: 30px; font-family: Arial, sans-serif; min-height: 600px;">
+            <!-- OKŁADKA -->
+            <div style="text-align: center; margin-bottom: 40px;">
+                <div style="font-size: 48px; font-weight: bold; color: #fff; margin-bottom: 10px;">JB</div>
+                ${motto ? `<p style="color: #fff; font-size: 12px; font-style: italic; margin: 10px 0;">"${motto}"</p>` : ''}
+                <h1 style="color: #fff; font-size: 36px; font-weight: bold; margin: 30px 0 10px 0; letter-spacing: 2px;">${title.toUpperCase()}</h1>
+                <h2 style="color: #0ed145; font-size: 24px; font-weight: bold; margin: 10px 0;">${subtitle.toUpperCase()}</h2>
             </div>
             
-            <!-- Day -->
-            <div style="margin-bottom: 30px;">
-                <h2 style="font-family: 'Archivo Black', Arial, sans-serif; font-size: 24px; color: #0ed145; margin: 0 0 15px 0; border-bottom: 3px solid #0ed145; padding-bottom: 10px;">
-                    ${firstDay.name || 'Dzień 1'}
-                </h2>
-                
-                <!-- Warmup -->
-                ${(firstDay.warmup?.part1 || firstDay.warmup?.part2 || firstDay.warmup?.part3) ? `
-                    <div style="margin-bottom: 20px; background: #f5f5f5; padding: 15px; border-radius: 8px;">
-                        <h3 style="font-family: 'Archivo Black', Arial, sans-serif; font-size: 16px; margin: 0 0 10px 0;">ROZGRZEWKA</h3>
-                        ${firstDay.warmup.part1 ? `<p style="margin: 5px 0;"><strong>1. Część ogólna:</strong> ${firstDay.warmup.part1}</p>` : ''}
-                        ${firstDay.warmup.part2 ? `<p style="margin: 5px 0;"><strong>2. Część dynamiczna:</strong> ${firstDay.warmup.part2}</p>` : ''}
-                        ${firstDay.warmup.part3 ? `<p style="margin: 5px 0;"><strong>3. Część specyficzna:</strong> ${firstDay.warmup.part3}</p>` : ''}
+            <hr style="border-color: #0ed145; margin: 40px 0;">
+            
+            <!-- PODGLĄD PIERWSZEGO DNIA -->
+            ${days.length > 0 ? `
+                <div>
+                    <div style="background: #0ed145; color: #000; padding: 12px 20px; border-radius: 20px; display: inline-block; font-size: 18px; font-weight: bold; margin-bottom: 20px;">
+                        Dzień ${firstDay.number}
                     </div>
-                ` : ''}
-                
-                <!-- Exercises Table -->
-                ${firstDay.exercises && firstDay.exercises.length > 0 ? `
-                    <table style="width: 100%; border-collapse: collapse; font-family: 'Libre Baskerville', serif; font-size: 12px;">
-                        <thead>
-                            <tr style="background: #0ed145; color: white;">
-                                <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Ćwiczenie</th>
-                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Serie</th>
-                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Powtórzenia</th>
-                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Tempo</th>
-                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Przerwa</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${firstDay.exercises.map((ex, idx) => `
-                                <tr style="${idx % 2 === 0 ? 'background: #f9f9f9;' : ''}">
-                                    <td style="padding: 10px; border: 1px solid #ddd;">${ex.name}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${ex.sets}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${ex.reps}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${ex.tempo}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${ex.rest}</td>
+                    
+                    <div style="background: #0ed145; color: #000; padding: 10px; text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 20px;">
+                        ${firstDay.name.toUpperCase()}
+                    </div>
+                    
+                    <!-- ROZGRZEWKA -->
+                    ${(firstDay.warmup?.part1 || firstDay.warmup?.part2 || firstDay.warmup?.part3) ? `
+                        <div style="background: #ffeb3b; color: #000; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                            <h3 style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold; text-align: center;">ROZGRZEWKA</h3>
+                            ${firstDay.warmup.part1 ? `<div style="margin: 8px 0;"><strong>1. Część ogólna:</strong> ${firstDay.warmup.part1}</div>` : ''}
+                            ${firstDay.warmup.part2 ? `<div style="margin: 8px 0;"><strong>2. Część dynamiczna:</strong> ${firstDay.warmup.part2}</div>` : ''}
+                            ${firstDay.warmup.part3 ? `<div style="margin: 8px 0;"><strong>3. Część specyficzna:</strong> ${firstDay.warmup.part3}</div>` : ''}
+                        </div>
+                    ` : ''}
+                    
+                    <!-- TABELA ĆWICZEŃ -->
+                    ${firstDay.exercises && firstDay.exercises.length > 0 ? `
+                        <div style="background: #0ed145; color: #000; padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center; font-weight: bold;">
+                            TRENING
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px;">
+                            <thead>
+                                <tr style="background: #0ed145; color: #000;">
+                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center; width: 40px;">L.P</th>
+                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: left;">Ćwiczenie</th>
+                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Partia Mięśniowa</th>
+                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Serie</th>
+                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Powtórzenia</th>
+                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Przerwa</th>
+                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">RIR</th>
                                 </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                ` : '<p style="color: #999; font-style: italic;">Dodaj ćwiczenia...</p>'}
-            </div>
+                            </thead>
+                            <tbody>
+                                ${firstDay.exercises.map((ex, idx) => `
+                                    <tr style="${idx % 2 === 0 ? 'background: #1a1a1a;' : 'background: #000;'}">
+                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; background: #0ed145; color: #000; font-weight: bold;">${idx + 1}</td>
+                                        <td style="padding: 10px; border: 1px solid #333; color: #fff;">${ex.name || '-'}</td>
+                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.muscle || '-'}</td>
+                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.sets || '-'}</td>
+                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.reps || '-'}</td>
+                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.rest || '-'}</td>
+                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.rir || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<p style="color: #666; text-align: center; padding: 20px;">Dodaj ćwiczenia do pierwszego dnia...</p>'}
+                </div>
+                
+                ${days.length > 1 ? `
+                    <p style="text-align: center; color: #0ed145; font-size: 14px; margin-top: 30px;">
+                        + ${days.length - 1} kolejnych dni treningowych
+                    </p>
+                ` : ''}
+            ` : '<p style="color: #666; text-align: center; padding: 40px;">Dodaj dni treningowe...</p>'}
             
-            ${days.length > 1 ? `<p style="text-align: center; color: #999; font-size: 12px; margin-top: 30px;">... oraz ${days.length - 1} kolejnych dni</p>` : ''}
-            
-            <!-- Footer -->
-            <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid #0ed145; text-align: center; font-size: 12px; color: #666;">
-                <p style="margin: 5px 0;"><strong>Jakub Bujakiewicz - Trener Personalny</strong></p>
-                <p style="margin: 5px 0;">www.jakubbujakiewicz.pl | kontakt@jakubbujakiewicz.pl</p>
+            <!-- STOPKA -->
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #0ed145; text-align: center; font-size: 11px; color: #666;">
+                <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 10px;">JB</div>
+                <p style="margin: 5px 0; color: #0ed145;">Jakub Bujakiewicz - Trener Personalny</p>
             </div>
         </div>
     `;
