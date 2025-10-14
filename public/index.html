@@ -49,6 +49,9 @@
                         <span class="notification-badge" id="notificationBadge">0</span>
                         🔔
                     </button>
+                    <button id="settingsBtn" class="btn-icon" title="Ustawienia">
+                        ⚙️
+                    </button>
                     <button id="logoutBtn" class="btn-secondary">Wyloguj</button>
                 </div>
             </div>
@@ -1109,12 +1112,167 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
 
+    <!-- Modal - Ustawienia -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>⚙️ Ustawienia Aplikacji</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Zakładki ustawień -->
+                <div class="settings-tabs">
+                    <button class="settings-tab-btn active" data-settings-tab="general">🏢 Ogólne</button>
+                    <button class="settings-tab-btn" data-settings-tab="services">💼 Usługi i Cennik</button>
+                    <button class="settings-tab-btn" data-settings-tab="appearance">🎨 Wygląd</button>
+                </div>
+
+                <!-- Zawartość zakładek ustawień -->
+                <div class="settings-content">
+                    
+                    <!-- Zakładka: Ogólne -->
+                    <div id="settings-general" class="settings-tab-content active">
+                        <h3>Informacje o aplikacji</h3>
+                        
+                        <div class="form-group">
+                            <label>Nazwa aplikacji</label>
+                            <input type="text" id="appName" placeholder="np. Trener Personalny Panel">
+                            <small class="form-hint">Nazwa wyświetlana w nagłówku aplikacji</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Twoje imię i nazwisko</label>
+                            <input type="text" id="trainerName" placeholder="np. Jan Kowalski">
+                            <small class="form-hint">Nazwa trenera wyświetlana na stronie logowania</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Email kontaktowy</label>
+                            <input type="email" id="contactEmail" placeholder="np. kontakt@example.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Numer telefonu</label>
+                            <input type="tel" id="contactPhone" placeholder="np. +48 123 456 789">
+                        </div>
+                        
+                        <button class="btn-primary" onclick="saveGeneralSettings()">💾 Zapisz ustawienia ogólne</button>
+                    </div>
+
+                    <!-- Zakładka: Usługi i Cennik -->
+                    <div id="settings-services" class="settings-tab-content">
+                        <h3>Zarządzanie usługami i cennikiem</h3>
+                        <p style="color: var(--text-gray); margin-bottom: 20px;">
+                            Tutaj możesz zarządzać cennikiem swoich usług. Ceny są automatycznie sugerowane przy dodawaniu nowych usług.
+                        </p>
+                        
+                        <!-- Cennik -->
+                        <div class="pricing-grid">
+                            <div class="pricing-card">
+                                <h4>🥗 Dieta</h4>
+                                <input type="number" id="settings_priceDieta" step="0.01" min="0" placeholder="0.00">
+                                <span class="currency">PLN</span>
+                            </div>
+                            
+                            <div class="pricing-card">
+                                <h4>💪 Plan treningowy</h4>
+                                <input type="number" id="settings_pricePlanTreningowy" step="0.01" min="0" placeholder="0.00">
+                                <span class="currency">PLN</span>
+                            </div>
+                            
+                            <div class="pricing-card">
+                                <h4>📊 Prowadzenie</h4>
+                                <input type="number" id="settings_priceProwadzenie" step="0.01" min="0" placeholder="0.00">
+                                <span class="currency">PLN</span>
+                            </div>
+                            
+                            <div class="pricing-card">
+                                <h4>📊 Prowadzenie - pierwszy miesiąc</h4>
+                                <input type="number" id="settings_priceProwadzeniePierwszy" step="0.01" min="0" placeholder="0.00">
+                                <span class="currency">PLN</span>
+                                <small style="display: block; margin-top: 5px; color: var(--text-gray); font-size: 12px;">
+                                    Automatycznie ustawiana dla nowych podopiecznych
+                                </small>
+                            </div>
+                            
+                            <div class="pricing-card">
+                                <h4>🤝 Współpraca prywatna</h4>
+                                <input type="number" id="settings_priceWspolpracaPrywatna" step="0.01" min="0" placeholder="0.00">
+                                <span class="currency">PLN</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn-primary" onclick="savePricingSettings()">💾 Zapisz cennik</button>
+                    </div>
+
+                    <!-- Zakładka: Wygląd -->
+                    <div id="settings-appearance" class="settings-tab-content">
+                        <h3>Personalizacja wyglądu</h3>
+                        
+                        <div class="form-group">
+                            <label>Motyw kolorystyczny</label>
+                            <div class="theme-selector">
+                                <button class="theme-option active" data-theme="dark" onclick="selectTheme('dark')">
+                                    <div class="theme-preview theme-dark"></div>
+                                    <span>🌙 Tryb ciemny</span>
+                                </button>
+                                <button class="theme-option" data-theme="light" onclick="selectTheme('light')">
+                                    <div class="theme-preview theme-light"></div>
+                                    <span>☀️ Tryb jasny</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Kolor akcentu</label>
+                            <div class="color-selector">
+                                <button class="color-option active" data-color="green" onclick="selectAccentColor('green')" style="background: #0ed145;">
+                                    <span class="color-checkmark">✓</span>
+                                </button>
+                                <button class="color-option" data-color="blue" onclick="selectAccentColor('blue')" style="background: #1e90ff;">
+                                    <span class="color-checkmark">✓</span>
+                                </button>
+                                <button class="color-option" data-color="purple" onclick="selectAccentColor('purple')" style="background: #9b59b6;">
+                                    <span class="color-checkmark">✓</span>
+                                </button>
+                                <button class="color-option" data-color="orange" onclick="selectAccentColor('orange')" style="background: #ff6b35;">
+                                    <span class="color-checkmark">✓</span>
+                                </button>
+                                <button class="color-option" data-color="red" onclick="selectAccentColor('red')" style="background: #e74c3c;">
+                                    <span class="color-checkmark">✓</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="compactMode">
+                                Tryb kompaktowy (mniejsze odstępy)
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="animationsEnabled" checked>
+                                Włącz animacje
+                            </label>
+                        </div>
+                        
+                        <button class="btn-primary" onclick="saveAppearanceSettings()">💾 Zapisz ustawienia wyglądu</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- App scripts -->
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/clients.js"></script>
     <script src="js/services.js"></script>
     <script src="js/surveys.js"></script>
+    <script src="js/settings.js"></script>
     <script src="js/finances.js"></script>
     <script src="js/notes.js"></script>
     <script src="js/measurements.js"></script>
