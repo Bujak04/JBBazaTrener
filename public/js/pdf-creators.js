@@ -277,6 +277,19 @@ function updateTrainingPreview() {
     const subtitle = document.getElementById('trainingSubtitle')?.value || '5 DNI - SPLIT';
     const motto = document.getElementById('trainingMotto')?.value || '';
     
+    const instructionPlan = document.getElementById('instructionPlan')?.value || '';
+    const instructionWarmup = document.getElementById('instructionWarmup')?.value || '';
+    const instructionProgress = document.getElementById('instructionProgress')?.value || '';
+    const instructionNutrition = document.getElementById('instructionNutrition')?.value || '';
+    const instructionRecovery = document.getElementById('instructionRecovery')?.value || '';
+    
+    const summaryText = document.getElementById('summaryText')?.value || '';
+    const summaryQuote = document.getElementById('summaryQuote')?.value || '';
+    const tip1 = document.getElementById('tip1')?.value || '';
+    const tip2 = document.getElementById('tip2')?.value || '';
+    const tip3 = document.getElementById('tip3')?.value || '';
+    const ctaText = document.getElementById('ctaText')?.value || '';
+    
     const days = Array.from(document.querySelectorAll('.training-day')).map(dayEl => {
         const dayNum = dayEl.dataset.day;
         return {
@@ -298,88 +311,193 @@ function updateTrainingPreview() {
         };
     });
     
-    // Renderuj podgląd - styl jak Twój PDF (czarne tło, zielone akcenty)
-    const firstDay = days[0] || {};
-    
+    // Renderuj podgląd - wszystkie strony
     preview.innerHTML = `
-        <div style="background: #000; color: #fff; padding: 30px; font-family: Arial, sans-serif; min-height: 600px;">
-            <!-- OKŁADKA -->
-            <div style="text-align: center; margin-bottom: 40px;">
-                <div style="font-size: 48px; font-weight: bold; color: #fff; margin-bottom: 10px;">JB</div>
-                ${motto ? `<p style="color: #fff; font-size: 12px; font-style: italic; margin: 10px 0;">"${motto}"</p>` : ''}
-                <h1 style="color: #fff; font-size: 36px; font-weight: bold; margin: 30px 0 10px 0; letter-spacing: 2px;">${title.toUpperCase()}</h1>
-                <h2 style="color: #0ed145; font-size: 24px; font-weight: bold; margin: 10px 0;">${subtitle.toUpperCase()}</h2>
+        <!-- STRONA 1: OKŁADKA -->
+        <div style="background: #000; color: #fff; padding: 30px; font-family: Arial, sans-serif; min-height: 600px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <div style="text-align: center; padding: 100px 20px;">
+                <div style="font-size: 72px; font-weight: bold; color: #fff; margin-bottom: 20px;">
+                    <span style="color: #fff;">J</span><span style="color: #0ed145;">B</span>
+                </div>
+                ${motto ? `<p style="color: #fff; font-size: 14px; font-style: italic; margin: 20px 0; opacity: 0.9;">"${motto}"</p>` : ''}
+                
+                <div style="margin: 100px 0;">
+                    <h1 style="color: #fff; font-size: 42px; font-weight: bold; margin: 0 0 20px 0; letter-spacing: 4px; line-height: 1.2;">${title.toUpperCase()}</h1>
+                    <h2 style="color: #0ed145; font-size: 28px; font-weight: bold; margin: 0; letter-spacing: 2px;">${subtitle.toUpperCase()}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- STRONA 2: INSTRUKCJE -->
+        <div style="background: #000; color: #fff; padding: 30px; font-family: Arial, sans-serif; min-height: 600px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: #0ed145; font-size: 28px; font-weight: bold; margin: 0; letter-spacing: 2px;">JAK KORZYSTAĆ Z PLANU?</h2>
             </div>
             
-            <hr style="border-color: #0ed145; margin: 40px 0;">
+            <div style="margin-bottom: 25px;">
+                <div style="background: #0ed145; color: #000; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px;">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: bold;">1️⃣ PLAN TRENINGOWY</h3>
+                </div>
+                <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #0ed145;">
+                    <p style="margin: 0; line-height: 1.6; font-size: 13px;">${instructionPlan || 'Zapoznaj się z planem przed rozpoczęciem.'}</p>
+                </div>
+            </div>
             
-            <!-- PODGLĄD PIERWSZEGO DNIA -->
-            ${days.length > 0 ? `
-                <div>
-                    <div style="background: #0ed145; color: #000; padding: 12px 20px; border-radius: 20px; display: inline-block; font-size: 18px; font-weight: bold; margin-bottom: 20px;">
-                        Dzień ${firstDay.number}
+            <div style="margin-bottom: 25px;">
+                <div style="background: #0ed145; color: #000; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px;">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: bold;">2️⃣ ROZGRZEWKA</h3>
+                </div>
+                <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #0ed145;">
+                    <p style="margin: 0; line-height: 1.6; font-size: 13px;">${instructionWarmup || 'Zawsze zacznij od rozgrzewki.'}</p>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 25px;">
+                <div style="background: #0ed145; color: #000; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px;">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: bold;">3️⃣ PROGRESJA</h3>
+                </div>
+                <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #0ed145;">
+                    <p style="margin: 0; line-height: 1.6; font-size: 13px;">${instructionProgress || 'Zwiększaj obciążenia systematycznie.'}</p>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 25px;">
+                <div style="background: #0ed145; color: #000; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px;">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: bold;">4️⃣ ŻYWIENIE</h3>
+                </div>
+                <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #0ed145;">
+                    <p style="margin: 0; line-height: 1.6; font-size: 13px;">${instructionNutrition || 'Dbaj o odpowiednią dietę.'}</p>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 25px;">
+                <div style="background: #0ed145; color: #000; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px;">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: bold;">5️⃣ REGENERACJA</h3>
+                </div>
+                <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #0ed145;">
+                    <p style="margin: 0; line-height: 1.6; font-size: 13px;">${instructionRecovery || 'Śpij 7-8 godzin dziennie.'}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- STRONY 3+: DNI TRENINGOWE -->
+        ${days.length > 0 ? days.map((day) => `
+            <div id="preview-day-${day.number}" style="background: #000; color: #fff; padding: 30px; font-family: Arial, sans-serif; min-height: 600px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="background: linear-gradient(135deg, #0ed145, #0a9c33); display: inline-block; padding: 12px 30px; border-radius: 25px; font-size: 18px; font-weight: bold; letter-spacing: 1px;">
+                        ${day.name.toUpperCase()}
                     </div>
-                    
-                    <div style="background: #0ed145; color: #000; padding: 10px; text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 20px;">
-                        ${firstDay.name.toUpperCase()}
-                    </div>
-                    
-                    <!-- ROZGRZEWKA -->
-                    ${(firstDay.warmup?.part1 || firstDay.warmup?.part2 || firstDay.warmup?.part3) ? `
-                        <div style="background: #ffeb3b; color: #000; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                            <h3 style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold; text-align: center;">ROZGRZEWKA</h3>
-                            ${firstDay.warmup.part1 ? `<div style="margin: 8px 0;"><strong>1. Część ogólna:</strong> ${firstDay.warmup.part1}</div>` : ''}
-                            ${firstDay.warmup.part2 ? `<div style="margin: 8px 0;"><strong>2. Część dynamiczna:</strong> ${firstDay.warmup.part2}</div>` : ''}
-                            ${firstDay.warmup.part3 ? `<div style="margin: 8px 0;"><strong>3. Część specyficzna:</strong> ${firstDay.warmup.part3}</div>` : ''}
-                        </div>
-                    ` : ''}
-                    
-                    <!-- TABELA ĆWICZEŃ -->
-                    ${firstDay.exercises && firstDay.exercises.length > 0 ? `
-                        <div style="background: #0ed145; color: #000; padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center; font-weight: bold;">
-                            TRENING
-                        </div>
-                        
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px;">
-                            <thead>
-                                <tr style="background: #0ed145; color: #000;">
-                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center; width: 40px;">L.P</th>
-                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: left;">Ćwiczenie</th>
-                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Partia Mięśniowa</th>
-                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Serie</th>
-                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Powtórzenia</th>
-                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Przerwa</th>
-                                    <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">RIR</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${firstDay.exercises.map((ex, idx) => `
-                                    <tr style="${idx % 2 === 0 ? 'background: #1a1a1a;' : 'background: #000;'}">
-                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; background: #0ed145; color: #000; font-weight: bold;">${idx + 1}</td>
-                                        <td style="padding: 10px; border: 1px solid #333; color: #fff;">${ex.name || '-'}</td>
-                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.muscle || '-'}</td>
-                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.sets || '-'}</td>
-                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.reps || '-'}</td>
-                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.rest || '-'}</td>
-                                        <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.rir || '-'}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    ` : '<p style="color: #666; text-align: center; padding: 20px;">Dodaj ćwiczenia do pierwszego dnia...</p>'}
                 </div>
                 
-                ${days.length > 1 ? `
-                    <p style="text-align: center; color: #0ed145; font-size: 14px; margin-top: 30px;">
-                        + ${days.length - 1} kolejnych dni treningowych
-                    </p>
+                <!-- ROZGRZEWKA - 3 BOKSY OBOK SIEBIE -->
+                ${(day.warmup?.part1 || day.warmup?.part2 || day.warmup?.part3) ? `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="background: #ffeb3b; color: #000; margin: 0 0 12px 0; padding: 10px; font-size: 14px; font-weight: bold; text-align: center; letter-spacing: 1px; border-radius: 8px;">🔥 ROZGRZEWKA</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <div style="background: #ffeb3b; color: #000; padding: 12px; border-radius: 8px; min-height: 100px;">
+                                <div style="background: #0ed145; color: #fff; text-align: center; padding: 6px; border-radius: 4px; margin-bottom: 8px; font-weight: bold; font-size: 11px;">1️⃣ CZĘŚĆ OGÓLNA</div>
+                                <div style="font-size: 10px; line-height: 1.4;"><strong>CEL:</strong> ${day.warmup.part1 || 'Zwiększenie temperatury ciała'}</div>
+                            </div>
+                            <div style="background: #ffeb3b; color: #000; padding: 12px; border-radius: 8px; min-height: 100px;">
+                                <div style="background: #0ed145; color: #fff; text-align: center; padding: 6px; border-radius: 4px; margin-bottom: 8px; font-weight: bold; font-size: 11px;">2️⃣ CZĘŚĆ DYNAMICZNA</div>
+                                <div style="font-size: 10px; line-height: 1.4;"><strong>CEL:</strong> ${day.warmup.part2 || 'Przygotowanie stawów i mięśni'}</div>
+                            </div>
+                            <div style="background: #ffeb3b; color: #000; padding: 12px; border-radius: 8px; min-height: 100px;">
+                                <div style="background: #0ed145; color: #fff; text-align: center; padding: 6px; border-radius: 4px; margin-bottom: 8px; font-weight: bold; font-size: 11px;">3️⃣ CZĘŚĆ SPECYFICZNA</div>
+                                <div style="font-size: 10px; line-height: 1.4;"><strong>CEL:</strong> ${day.warmup.part3 || 'Aktywacja mięśni treningowych'}</div>
+                            </div>
+                        </div>
+                    </div>
                 ` : ''}
-            ` : '<p style="color: #666; text-align: center; padding: 40px;">Dodaj dni treningowe...</p>'}
+                
+                <!-- TABELA ĆWICZEŃ -->
+                ${day.exercises && day.exercises.length > 0 ? `
+                    <div style="background: #0ed145; color: #000; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: bold; letter-spacing: 1px;">
+                        💪 TRENING
+                    </div>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px;">
+                        <thead>
+                            <tr style="background: #0ed145; color: #000;">
+                                <th style="padding: 10px; border: 2px solid #0ed145; text-align: center; width: 40px;">L.P</th>
+                                <th style="padding: 10px; border: 2px solid #0ed145; text-align: left;">Ćwiczenie</th>
+                                <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Partia Mięśniowa</th>
+                                <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Serie</th>
+                                <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Powtórzenia</th>
+                                <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">Przerwa</th>
+                                <th style="padding: 10px; border: 2px solid #0ed145; text-align: center;">RIR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${day.exercises.map((ex, idx) => `
+                                <tr style="${idx % 2 === 0 ? 'background: #1a1a1a;' : 'background: #000;'}">
+                                    <td style="padding: 10px; border: 1px solid #333; text-align: center; background: #0ed145; color: #000; font-weight: bold;">${idx + 1}</td>
+                                    <td style="padding: 10px; border: 1px solid #333; color: #fff;">${ex.name || '-'}</td>
+                                    <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.muscle || '-'}</td>
+                                    <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.sets || '-'}</td>
+                                    <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.reps || '-'}</td>
+                                    <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.rest || '-'}</td>
+                                    <td style="padding: 10px; border: 1px solid #333; text-align: center; color: #fff;">${ex.rir || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <p style="font-size: 9px; color: #999; margin: 0; text-align: center;"><strong>RIR</strong> (Reps In Reserve) - ile powtórzeń zostaje w rezerwie przed odmową mięśniową</p>
+                ` : '<p style="color: #666; text-align: center; padding: 20px;">Dodaj ćwiczenia do tego dnia...</p>'}
+            </div>
+        `).join('') : '<div style="background: #1a1a1a; color: #666; padding: 60px; text-align: center; border-radius: 8px; margin-bottom: 30px;"><p style="font-size: 16px;">Dodaj dni treningowe...</p></div>'}
+        
+        <!-- OSTATNIA STRONA: ZAKOŃCZENIE -->
+        <div style="background: #000; color: #fff; padding: 30px; font-family: Arial, sans-serif; min-height: 600px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="background: linear-gradient(135deg, #0ed145, #0a9c33); display: inline-block; padding: 15px 40px; border-radius: 30px; font-size: 24px; font-weight: bold; letter-spacing: 2px;">
+                    🎉 PODSUMOWANIE
+                </div>
+            </div>
             
-            <!-- STOPKA -->
-            <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #0ed145; text-align: center; font-size: 11px; color: #666;">
-                <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 10px;">JB</div>
-                <p style="margin: 5px 0; color: #0ed145;">Jakub Bujakiewicz - Trener Personalny</p>
+            <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #0ed145;">
+                <p style="margin: 0; line-height: 1.8; font-size: 14px; text-align: center;">${summaryText || 'Gratulacje! Masz kompletny plan treningowy.'}</p>
+            </div>
+            
+            ${summaryQuote ? `
+                <div style="background: linear-gradient(135deg, #0ed145, #0a9c33); padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
+                    <p style="margin: 0; font-size: 15px; font-style: italic; color: #000; font-weight: 500;">"${summaryQuote}"</p>
+                </div>
+            ` : ''}
+            
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: #0ed145; font-size: 18px; font-weight: bold; text-align: center; margin: 0 0 15px 0; letter-spacing: 1px;">📈 ŚLEDŹ SWOJE POSTĘPY</h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    ${tip1 ? `
+                        <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-top: 3px solid #0ed145;">
+                            <p style="margin: 0; font-size: 12px; line-height: 1.6; text-align: center;">${tip1}</p>
+                        </div>
+                    ` : ''}
+                    ${tip2 ? `
+                        <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-top: 3px solid #0ed145;">
+                            <p style="margin: 0; font-size: 12px; line-height: 1.6; text-align: center;">${tip2}</p>
+                        </div>
+                    ` : ''}
+                    ${tip3 ? `
+                        <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-top: 3px solid #0ed145;">
+                            <p style="margin: 0; font-size: 12px; line-height: 1.6; text-align: center;">${tip3}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            
+            ${ctaText ? `
+                <div style="background: linear-gradient(135deg, #0ed145, #0a9c33); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+                    <p style="margin: 0; font-size: 15px; font-weight: bold; color: #000;">${ctaText}</p>
+                </div>
+            ` : ''}
+            
+            <div style="text-align: center; padding-top: 30px; margin-top: 30px; border-top: 2px solid #0ed145;">
+                <div style="font-size: 48px; font-weight: bold; margin-bottom: 20px;">
+                    <span style="color: #fff;">J</span><span style="color: #0ed145;">B</span>
+                </div>
+                <p style="margin: 0; font-size: 16px; font-weight: bold; color: #0ed145;">Jakub Bujakiewicz - Trener Personalny</p>
+                <p style="margin: 5px 0 0 0; font-size: 11px; color: #999;">kontakt@jakubbujakiewicz.pl | www.jakubbujakiewicz.pl | @bujak04</p>
             </div>
         </div>
     `;
