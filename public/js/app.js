@@ -11,6 +11,11 @@ function initializeApp() {
         window.loadPricing();
     }
     
+    // Inicjalizuj nasłuchiwanie na usługi
+    if (typeof window.initializeServicesListener === 'function') {
+        window.initializeServicesListener();
+    }
+    
     // Nasłuchiwanie na zmiany w klientach
     window.db.collection('clients').onSnapshot((snapshot) => {
         allClients = [];
@@ -46,12 +51,12 @@ function initializeApp() {
 // System zakładek
 function initializeTabs() {
     console.log('🔧 INITIALIZING TABS...');
-    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabButtons = document.querySelectorAll('.sidebar-btn[data-tab]');
     
-    console.log('Found tab buttons:', tabButtons.length);
+    console.log('Found sidebar buttons:', tabButtons.length);
     
     if (tabButtons.length === 0) {
-        console.error('❌ NO TAB BUTTONS FOUND!');
+        console.error('❌ NO SIDEBAR BUTTONS FOUND!');
         return;
     }
     
@@ -67,7 +72,7 @@ function initializeTabs() {
             console.log('✅ TAB CLICKED:', tabName);
             
             // Usuń active ze wszystkich zakładek
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.sidebar-btn[data-tab]').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
             // Dodaj active do wybranej zakładki
@@ -78,7 +83,12 @@ function initializeTabs() {
                 targetTab.classList.add('active');
                 console.log('✅ Activated tab:', tabName);
             } else {
-                console.error('❌ Tab not found:', `${tabName}Tab`);
+                console.error('❌ Tab not found:', `${tabName}-tab`);
+            }
+            
+            // Zamknij sidebar na mobile
+            if (window.innerWidth <= 1024) {
+                closeSidebar();
             }
             
             // Odśwież dane w zakładce
@@ -122,7 +132,58 @@ function initializeTabs() {
         };
     });
     
+    // Hamburger menu
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    
+    if (hamburgerBtn && sidebar && sidebarOverlay) {
+        hamburgerBtn.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+    
+    // Ustawienia i wylogowanie w sidebar
+    const settingsSidebarBtn = document.getElementById('settingsSidebarBtn');
+    const logoutSidebarBtn = document.getElementById('logoutSidebarBtn');
+    
+    if (settingsSidebarBtn) {
+        settingsSidebarBtn.addEventListener('click', () => {
+            document.getElementById('settingsModal').classList.add('active');
+            if (window.innerWidth <= 1024) closeSidebar();
+        });
+    }
+    
+    if (logoutSidebarBtn) {
+        logoutSidebarBtn.addEventListener('click', () => {
+            if (typeof window.logout === 'function') {
+                window.logout();
+            }
+        });
+    }
+    
     console.log('✅ TABS INITIALIZED!');
+}
+
+// Toggle sidebar
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const hamburger = document.getElementById('hamburgerBtn');
+    
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+    hamburger.classList.toggle('active');
+}
+
+// Close sidebar
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const hamburger = document.getElementById('hamburgerBtn');
+    
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+    hamburger.classList.remove('active');
 }
 
 // System modali

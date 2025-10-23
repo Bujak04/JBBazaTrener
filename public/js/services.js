@@ -573,6 +573,35 @@ function updateServicesTab() {
     updateServicesHistory();
 }
 
+// Inicjalizacja nasłuchiwania na usługi w historii
+function initializeServicesListener() {
+    window.db.collection('services_history')
+        .orderBy('createdAt', 'desc')
+        .limit(20)
+        .onSnapshot(() => {
+            updateServicesHistory();
+        });
+}
+
+// Usuwanie historii usługi
+async function deleteServiceHistory(historyId) {
+    if (!confirm('Czy na pewno chcesz usunąć tę usługę z historii?')) {
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        await window.db.collection('services_history').doc(historyId).delete();
+        showToast('Usługa usunięta z historii', 'success');
+    } catch (error) {
+        console.error('Error deleting service history:', error);
+        showToast('Błąd usuwania usługi: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
 // Aktualizacja statystyk usług
 function updateServiceStats() {
     let dietCount = 0;
@@ -673,7 +702,16 @@ async function updateServicesHistory() {
                         </p>
                         ${service.notes ? `<p style="color: var(--text-gray); font-size: 13px;">${service.notes}</p>` : ''}
                     </div>
-                    <span class="client-status" style="background: rgba(128,128,128,0.2); color: #888; border: 1px solid #666;">Zakończono</span>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span class="client-status" style="background: rgba(128,128,128,0.2); color: #888; border: 1px solid #666;">Zakończono</span>
+                        <button onclick="deleteServiceHistory('${item.id}')" 
+                                class="action-btn" 
+                                style="background: rgba(255, 0, 0, 0.1); color: var(--danger-red); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--danger-red); cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.background='var(--danger-red)'; this.style.color='white'"
+                                onmouseout="this.style.background='rgba(255, 0, 0, 0.1)'; this.style.color='var(--danger-red)'">
+                            🗑️ Usuń
+                        </button>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -686,6 +724,8 @@ async function updateServicesHistory() {
 
 // Eksporty globalne
 window.updateServicesTab = updateServicesTab;
+window.initializeServicesListener = initializeServicesListener;
+window.deleteServiceHistory = deleteServiceHistory;
 window.openServiceModal = openServiceModal;
 window.extendService = extendService;
 window.endService = endService;

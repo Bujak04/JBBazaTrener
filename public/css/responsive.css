@@ -1,65 +1,439 @@
-/ personal-trainer-panel/personal-trainer-panel/public/css/responsive.css
-
 /* Responsive styles for the personal trainer panel */
 
-/* Mobile styles */
+/* Mobile First - Base styles */
 @media (max-width: 768px) {
-    body {
-        font-size: 14px;
+    /* Top bar mobile */
+    .top-bar-title {
+        display: none;
     }
-
-    .navbar {
-        flex-direction: column;
+    
+    .top-bar-logo img {
+        height: 30px;
     }
-
-    .client-list, .service-list, .note-list, .measurement-list {
-        padding: 10px;
+    
+    /* Sidebar mobile */
+    .sidebar-header {
+        padding: 20px 15px;
     }
-
-    .card {
-        margin: 10px 0;
+    
+    .sidebar-logo {
+        width: 80px;
+        height: 80px;
     }
-
-    .chart-container {
-        width: 100%;
-        height: 300px;
-    }
-}
-
-/* Tablet styles */
-@media (min-width: 769px) and (max-width: 1024px) {
-    body {
-        font-size: 16px;
-    }
-
-    .navbar {
-        justify-content: space-between;
-    }
-
-    .chart-container {
-        width: 80%;
-        height: 400px;
-    }
-}
-
-/* Desktop styles */
-@media (min-width: 1025px) {
-    body {
+    
+    .sidebar-header h2 {
         font-size: 18px;
     }
-
-    .chart-container {
-        width: 70%;
-        height: 500px;
+    
+    .sidebar-btn {
+        padding: 12px 20px;
+        font-size: 15px;
     }
-
-    .client-list, .service-list, .note-list, .measurement-list {
-        display: flex;
+    
+    .sidebar-icon {
+        font-size: 20px;
+    }
+    
+    /* Główny kontener */
+    .main-container {
+        padding: 15px 10px;
+    }
+    
+    /* Header sekcji */
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .section-header h2 {
+        font-size: 20px;
+    }
+    
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .header-actions button,
+    .header-actions input,
+    .header-actions select {
+        width: 100%;
+    }
+    
+    /* Dashboard - statystyki */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+    }
+    
+    .stat-card {
+        padding: 20px;
+    }
+    
+    .stat-card h3 {
+        font-size: 14px;
+    }
+    
+    .stat-card .stat-value {
+        font-size: 32px;
+    }
+    
+    /* Karty klientów */
+    .clients-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+    }
+    
+    .client-card {
+        padding: 15px;
+    }
+    
+    .client-card h3 {
+        font-size: 16px;
+    }
+    
+    .client-actions {
         flex-wrap: wrap;
+        gap: 8px;
     }
+    
+    .client-actions button {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+    
+    /* Modal */
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        margin: 20px auto;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header h2 {
+        font-size: 18px;
+    }
+    
+    .modal-body {
+        padding: 20px 15px;
+    }
+    
+    /* Formularz */
+    .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        font-size: 13px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 14px;
+        padding: 10px;
+    }
+    
+    /* Przyciski */
+    .btn, .action-btn {
+        font-size: 14px;
+        padding: 10px 15px;
+    }
+    
+    .modal-footer {
+        flex-direction: column-reverse;
+        gap: 10px;
+    }
+    
+    .modal-footer button {
+        width: 100%;
+    }
+    
+    /* Detale klienta */
+    .client-details-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .client-info h2 {
+        font-size: 20px;
+    }
+    
+    .client-stats {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .client-stat {
+        flex: 1 1 calc(50% - 5px);
+        min-width: 120px;
+        padding: 10px;
+    }
+    
+    .client-stat .stat-label {
+        font-size: 11px;
+    }
+    
+    .client-stat .stat-value {
+        font-size: 18px;
+    }
+    
+    /* Zakładki w detailach */
+    .client-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    
+    .client-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .client-tab-btn {
+        font-size: 13px;
+        padding: 10px 15px;
+        white-space: nowrap;
+    }
+    
+    /* Tabele */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        font-size: 13px;
+    }
+    
+    th, td {
+        padding: 8px;
+    }
+    
+    /* Historia usług */
+    .service-history-item {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .service-history-item > div:last-child {
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .service-history-item button {
+        width: 100%;
+    }
+    
+    /* Pomiary - statystyki */
+    .stats-section {
+        padding: 15px;
+    }
+    
+    .stats-section h3 {
+        font-size: 16px;
+    }
+    
+    .stats-grid-section {
+        grid-template-columns: 1fr !important;
+        gap: 10px;
+    }
+    
+    .stat-item {
+        padding: 12px;
+    }
+    
+    .stat-item .label {
+        font-size: 12px;
+    }
+    
+    .stat-item .value {
+        font-size: 20px;
+    }
+    
+    .stat-item .change {
+        font-size: 11px;
+    }
+    
+    /* Galeria zdjęć */
+    #photoGalleryContent > div > div:last-child {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+        gap: 10px !important;
+    }
+    
+    .photo-thumbnail {
+        aspect-ratio: 3/4;
+    }
+    
+    /* Wykresy */
+    .chart-container {
+        width: 100%;
+        height: 250px;
+        margin: 20px 0;
+    }
+    
+    canvas {
+        max-width: 100%;
+    }
+    
+    /* Notatki */
+    .note-card {
+        padding: 15px;
+    }
+    
+    .note-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    /* Finanse */
+    .payment-card {
+        padding: 15px;
+    }
+    
+    .payment-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .payment-amount {
+        font-size: 22px;
+    }
+    
+    /* Ustawienia */
+    .settings-section {
+        padding: 15px;
+    }
+    
+    .settings-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+    }
+    
+    /* Status badges */
+    .client-status {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+    
+    /* Empty states */
+    .empty-state {
+        padding: 40px 20px;
+    }
+    
+    .empty-state-icon {
+        font-size: 48px;
+    }
+    
+    .empty-state p {
+        font-size: 14px;
+    }
+    
+    /* Checkboxy w formularzach */
+    .checkbox-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .checkbox-label {
+        font-size: 14px;
+        padding: 12px;
+    }
+    
+    /* File preview */
+    #fileViewContainer iframe {
+        height: 400px !important;
+    }
+}
 
-    .card {
-        flex: 1 1 calc(33.333% - 20px);
-        margin: 10px;
+/* Tablet - Medium screens */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .clients-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .stats-grid-section {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .modal-content {
+        width: 85%;
+        max-width: 700px;
+    }
+    
+    #photoGalleryContent > div > div:last-child {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+    }
+}
+
+/* Desktop - Large screens */
+@media (min-width: 1025px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+    
+    .clients-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    
+    .stats-grid-section {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+    
+    #photoGalleryContent > div > div:last-child {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    }
+}
+
+/* Landscape orientation na telefonie */
+@media (max-width: 768px) and (orientation: landscape) {
+    .modal-content {
+        max-height: 85vh;
+    }
+    
+    .chart-container {
+        height: 200px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* Ultra wide screens */
+@media (min-width: 1600px) {
+    .main-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .clients-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
     }
 }
