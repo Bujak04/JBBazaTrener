@@ -160,7 +160,9 @@ function initializeModals() {
 
     // Przycisk dodaj notatkę
     document.getElementById('addNoteBtn').addEventListener('click', () => {
-        openNoteModal();
+        if (typeof window.openNoteModal === 'function') {
+            window.openNoteModal();
+        }
     });
     
     // Przycisk dodaj płatność
@@ -444,28 +446,8 @@ function openClientModal(clientData = null) {
     modal.classList.add('active');
 }
 
-// Otwieranie modala notatki
-function openNoteModal(clientId = null) {
-    const modal = document.getElementById('noteModal');
-    const form = document.getElementById('noteForm');
-    const select = document.getElementById('noteClientSelect');
-    
-    form.reset();
-    
-    // Wypełnij listę klientów
-    select.innerHTML = '<option value="">Ogólna notatka</option>';
-    allClients.forEach(client => {
-        const option = document.createElement('option');
-        option.value = client.id;
-        option.textContent = `${client.firstName} ${client.lastName}`;
-        if (clientId && client.id === clientId) {
-            option.selected = true;
-        }
-        select.appendChild(option);
-    });
-    
-    modal.classList.add('active');
-}
+// Ta funkcja jest już w notes.js, więc możemy usunąć duplikat
+// openNoteModal jest zdefiniowana w notes.js i eksportowana globalnie
 
 // Obsługa formatowania dat DD.MM.RRRR
 function initializeDateFormatting() {

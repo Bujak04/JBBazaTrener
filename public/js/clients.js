@@ -378,7 +378,7 @@ async function renderClientNotes(clientId) {
     const container = document.getElementById('clientNotes');
     
     try {
-        const snapshot = await db.collection('notes')
+        const snapshot = await window.db.collection('notes')
             .where('clientId', '==', clientId)
             .orderBy('createdAt', 'desc')
             .limit(5)
@@ -398,6 +398,7 @@ async function renderClientNotes(clientId) {
             <div class="note-card">
                 <div class="note-header">
                     <span class="note-date">${formatDate(note.createdAt)}</span>
+                    <button class="btn-danger" onclick="deleteClientNote('${note.id}', '${clientId}')" style="padding: 3px 8px; font-size: 12px;">Usuń</button>
                 </div>
                 <div class="note-content">${note.content}</div>
             </div>
@@ -488,30 +489,75 @@ function renderClientMeasurements(client) {
 
 // Renderowanie plików klienta
 function renderClientFiles(client) {
-    const container = document.getElementById('clientFiles');
+    // Renderuj zdjęcia
+    const photosContainer = document.getElementById('clientPhotos');
+    const photos = client.photos || [];
+    
+    if (photos.length === 0) {
+        photosContainer.innerHTML = '<p style="color: var(--text-gray); text-align: center; padding: 20px;">Brak zdjęć</p>';
+    } else {
+        // Grupuj zdjęcia po datach i pokaż preview ostatnich 6
+        const photosByDate = {};
+        photos.forEach(photo => {
+            const date = photo.photoDate ? formatDate(photo.photoDate) : formatDate(photo.uploadedAt);
+            if (!photosByDate[date]) {
+                photosByDate[date] = [];
+            }
+            photosByDate[date].push(photo);
+        });
+        
+        const dateCount = Object.keys(photosByDate).length;
+        const recentPhotos = photos.slice(-6).reverse();
+        
+        photosContainer.innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <button onclick="openPhotoGallery('${client.id}', ${JSON.stringify(photos).replace(/"/g, '&quot;')})" 
+                        class="btn-secondary" 
+                        style="width: 100%;">
+                    🖼️ Otwórz pełną galerię (${photos.length} zdjęć w ${dateCount} datach)
+                </button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">
+                ${recentPhotos.map(photo => `
+                    <div style="position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; background: var(--card-bg); cursor: pointer;" onclick="openPhotoGallery('${client.id}', ${JSON.stringify(photos).replace(/"/g, '&quot;')})">
+                        <img src="${photo.url}" 
+                             alt="${photo.fileName}" 
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 5px; text-align: center;">
+                            <small style="color: white; font-size: 10px;">${photo.photoDate ? formatDate(photo.photoDate) : formatDate(photo.uploadedAt)}</small>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            ${photos.length > 6 ? '<p style="text-align: center; color: var(--text-gray); margin-top: 10px; font-size: 13px;">+ ' + (photos.length - 6) + ' więcej...</p>' : ''}
+        `;
+    }
+    
+    // Renderuj pliki/diety
+    const filesContainer = document.getElementById('clientFiles');
     const files = client.files || [];
     
     if (files.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-gray);">Brak plików</p>';
-        return;
-    }
-    
-    container.innerHTML = files.map(file => `
-        <div class="file-item">
-            <div class="file-info">
-                <span class="file-icon">${getFileIcon(file.type)}</span>
-                <div>
-                    <div class="file-name">${file.name}</div>
-                    ${file.description ? `<div class="file-size">${file.description}</div>` : ''}
-                    <div class="file-size">Dodano: ${formatDate(file.uploadedAt)}</div>
+        filesContainer.innerHTML = '<p style="color: var(--text-gray); text-align: center; padding: 20px;">Brak plików</p>';
+    } else {
+        filesContainer.innerHTML = files.map(file => `
+            <div class="file-item" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: var(--card-bg); border-radius: 8px; margin-bottom: 10px; cursor: pointer;" onclick="openFileView('${client.id}', ${JSON.stringify(file).replace(/"/g, '&quot;')})">
+                <div class="file-info" style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                    <span class="file-icon" style="font-size: 32px;">${file.format === 'pdf' ? '📕' : '📄'}</span>
+                    <div>
+                        <div class="file-name" style="font-weight: 600; margin-bottom: 5px;">${file.fileName}</div>
+                        <div class="file-size" style="color: var(--text-gray); font-size: 13px;">
+                            ${formatFileSize(file.size)} • Dodano: ${formatDate(file.uploadedAt)}
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions" style="display: flex; gap: 10px;" onclick="event.stopPropagation();">
+                    <button class="btn-secondary" onclick="window.open('${file.url}', '_blank')">📥</button>
+                    <button class="btn-danger" onclick="deleteClientFile('${client.id}', '${file.id}')">🗑️</button>
                 </div>
             </div>
-            <div class="service-actions">
-                <button class="btn-secondary" onclick="downloadFile('${file.url}', '${file.name}')">Pobierz</button>
-                <button class="btn-danger" onclick="deleteFile('${client.id}', '${file.id}')">Usuń</button>
-            </div>
-        </div>
-    `).join('');
+        `).join('');
+    }
 }
 
 // Setup przycisków w szczegółach klienta
@@ -529,8 +575,11 @@ function setupClientDetailsButtons(client) {
     
     // Dodaj notatkę
     document.getElementById('addClientNoteBtn').onclick = () => {
-        // NIE zamykaj profilu, tylko otwórz modal notatki
-        openNoteModal(client.id);
+        // NIE zamykaj profilu, tylko otwórz modal notatki z callbackiem do odświeżenia
+        openNoteModal(client.id, () => {
+            // Po dodaniu notatki odśwież sekcję notatek
+            renderClientNotes(client.id);
+        });
     };
     
     // Dodaj pomiar
@@ -554,9 +603,22 @@ function setupClientDetailsButtons(client) {
         }
     };
     
+    // Upload zdjęcia
+    document.getElementById('uploadPhotoBtn').onclick = () => {
+        if (window.uploadClientPhoto) {
+            window.uploadClientPhoto(client.id);
+        } else {
+            showToast('Funkcja uploadu zdjęć nie jest dostępna', 'error');
+        }
+    };
+    
     // Upload pliku
     document.getElementById('uploadFileBtn').onclick = () => {
-        openFileUploadModal(client.id);
+        if (window.uploadClientFile) {
+            window.uploadClientFile(client.id);
+        } else {
+            showToast('Funkcja uploadu plików nie jest dostępna', 'error');
+        }
     };
     
     // Usuń klienta
@@ -574,14 +636,14 @@ async function deleteClient(clientId) {
     showLoading(true);
     
     try {
-        await db.collection('clients').doc(clientId).delete();
+        await window.db.collection('clients').doc(clientId).delete();
         
         // Usuń powiązane notatki
-        const notesSnapshot = await db.collection('notes')
+        const notesSnapshot = await window.db.collection('notes')
             .where('clientId', '==', clientId)
             .get();
         
-        const batch = db.batch();
+        const batch = window.db.batch();
         notesSnapshot.forEach(doc => {
             batch.delete(doc.ref);
         });
@@ -753,6 +815,29 @@ async function changeClientAddedDate(clientId, currentDate) {
 }
 
 
+// Usuwanie notatki klienta
+async function deleteClientNote(noteId, clientId) {
+    if (!confirm('Czy na pewno chcesz usunąć tę notatkę?')) {
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        await window.db.collection('notes').doc(noteId).delete();
+        showToast('Notatka usunięta', 'success');
+        
+        // Odśwież sekcję notatek w profilu klienta
+        await renderClientNotes(clientId);
+        
+    } catch (error) {
+        console.error('Error deleting client note:', error);
+        showToast('Błąd usuwania notatki', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
 // Eksporty globalne
 window.handleClientSubmit = handleClientSubmit;
 window.renderClientsList = renderClientsList;
@@ -762,6 +847,8 @@ window.deleteClient = deleteClient;
 window.changeClientStatus = changeClientStatus;
 window.deleteClientMeasurement = deleteClientMeasurement;
 window.changeClientAddedDate = changeClientAddedDate;
+window.deleteClientNote = deleteClientNote;
+window.renderClientNotes = renderClientNotes;
 
 console.log('✅ Clients.js loaded');
 

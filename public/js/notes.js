@@ -84,6 +84,17 @@ async function handleNoteSubmit(e) {
         document.getElementById('noteModal').classList.remove('active');
         document.getElementById('noteForm').reset();
         
+        // Wywołaj callback jeśli został ustawiony (np. odświeżenie notatek w profilu)
+        if (window.noteModalCallback) {
+            window.noteModalCallback();
+            window.noteModalCallback = null;
+        }
+        
+        // Odśwież listę notatek w zakładce Notatki
+        if (document.getElementById('notes-tab').classList.contains('active')) {
+            renderNotesList();
+        }
+        
     } catch (error) {
         console.error('Error adding note:', error);
         showToast('Błąd dodawania notatki', 'error');
@@ -185,8 +196,40 @@ function populateNoteClientSelect() {
         });
 }
 
+// Otwieranie modala notatki z opcjonalnym callbackiem
+function openNoteModal(clientId = null, callback = null) {
+    const modal = document.getElementById('noteModal');
+    const form = document.getElementById('noteForm');
+    
+    if (!modal || !form) {
+        console.error('Note modal elements not found');
+        return;
+    }
+    
+    form.reset();
+    
+    // Ustaw callback który zostanie wywołany po zapisaniu
+    if (callback) {
+        window.noteModalCallback = callback;
+    }
+    
+    // Jeśli podano clientId, ustaw go w selecte
+    if (clientId) {
+        populateNoteClientSelect();
+        setTimeout(() => {
+            document.getElementById('noteClientSelect').value = clientId;
+        }, 100);
+    } else {
+        populateNoteClientSelect();
+    }
+    
+    modal.classList.add('active');
+}
+
 console.log('Notes.js loaded');
 // Eksporty globalne
 window.renderNotesList = renderNotesList;
 window.handleNoteSubmit = handleNoteSubmit;
 window.deleteNote = deleteNote;
+window.openNoteModal = openNoteModal;
+window.populateNoteClientSelect = populateNoteClientSelect;
