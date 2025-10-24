@@ -235,6 +235,38 @@
                 <h2>Zarządzanie usługami</h2>
                 
                 <div class="services-overview">
+                    <!-- Cennik usług -->
+                    <div class="service-category">
+                        <h3>💰 Cennik usług</h3>
+                        <p style="color: var(--text-gray); margin-bottom: 20px; font-size: 14px;">
+                            Ustaw ceny swoich usług. Będą automatycznie sugerowane przy dodawaniu usług do klientów.
+                        </p>
+                        <div class="pricing-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label>🥗 Dieta (PLN)</label>
+                                <input type="number" id="priceDieta" step="0.01" min="0" placeholder="0.00" style="width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label>💪 Plan treningowy (PLN)</label>
+                                <input type="number" id="pricePlan" step="0.01" min="0" placeholder="0.00" style="width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label>📊 Prowadzenie (PLN)</label>
+                                <input type="number" id="priceProwadzenie" step="0.01" min="0" placeholder="0.00" style="width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label>📊 Prowadzenie - pierwszy (PLN)</label>
+                                <input type="number" id="priceProwadzeniePierwszy" step="0.01" min="0" placeholder="0.00" style="width: 100%;">
+                                <small style="color: var(--text-gray); font-size: 12px;">Dla nowych klientów</small>
+                            </div>
+                            <div class="form-group">
+                                <label>🤝 Współpraca prywatna (PLN)</label>
+                                <input type="number" id="priceWspolpraca" step="0.01" min="0" placeholder="0.00" style="width: 100%;">
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="savePricing()" style="margin-top: 10px;">💾 Zapisz cennik</button>
+                    </div>
+
                     <div class="service-category">
                         <h3>Prowadzenie - Status</h3>
                         <div class="stats-grid">

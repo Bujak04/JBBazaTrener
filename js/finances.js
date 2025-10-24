@@ -150,6 +150,12 @@ async function loadPayments() {
             console.log('✅ Zmigrowano stare płatności (dodano discount i finalAmount)');
         }
         
+        // Zapisz płatności globalnie dla filtrów
+        window.allPayments = payments;
+        
+        // Załaduj listę klientów do filtru
+        updatePaymentClientFilter(payments);
+        
         renderPaymentsList(payments);
         calculateFinanceStats(payments);
         
@@ -167,20 +173,35 @@ function renderPaymentsList(payments) {
     
     if (!container) return;
     
-    if (payments.length === 0) {
+    // Pobierz wartości filtrów
+    const statusFilter = document.getElementById('paymentStatusFilter')?.value || 'all';
+    const clientFilter = document.getElementById('paymentClientFilter')?.value || 'all';
+    
+    // Zastosuj filtry
+    let filteredPayments = payments;
+    
+    if (statusFilter !== 'all') {
+        filteredPayments = filteredPayments.filter(p => p.status === statusFilter);
+    }
+    
+    if (clientFilter !== 'all') {
+        filteredPayments = filteredPayments.filter(p => p.clientId === clientFilter);
+    }
+    
+    if (filteredPayments.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <div class="empty-state-icon">💰</div>
-                <p>Brak płatności</p>
+                <p>Brak płatności${statusFilter !== 'all' || clientFilter !== 'all' ? ' spełniających kryteria filtrów' : ''}</p>
                 <p style="color: var(--text-gray); font-size: 14px; margin-top: 10px;">
-                    Dodaj pierwszą płatność klikając przycisk "+ Dodaj płatność"
+                    ${statusFilter === 'all' && clientFilter === 'all' ? 'Dodaj pierwszą płatność klikając przycisk "+ Dodaj płatność"' : 'Zmień filtry aby zobaczyć więcej płatności'}
                 </p>
             </div>
         `;
         return;
     }
     
-    container.innerHTML = payments.map(payment => {
+    container.innerHTML = filteredPayments.map(payment => {
         const statusClass = payment.status === 'oplacone' ? 'success' : 
                            payment.status === 'oczekujace' ? 'warning' : 'danger';
         const statusLabel = payment.status === 'oplacone' ? '✅ Opłacone' : 
@@ -385,6 +406,65 @@ async function editPayment(paymentId) {
     }
 }
 
+// Aktualizacja filtru klientów w finansach
+function updatePaymentClientFilter(payments) {
+    const filter = document.getElementById('paymentClientFilter');
+    
+    if (!filter) return;
+    
+    // Zbierz unikalne pary clientId i clientName
+    const uniqueClients = new Map();
+    payments.forEach(payment => {
+        if (payment.clientId && payment.clientName) {
+            uniqueClients.set(payment.clientId, payment.clientName);
+        }
+    });
+    
+    // Sortuj alfabetycznie po nazwisku
+    const sortedClients = Array.from(uniqueClients.entries()).sort((a, b) => 
+        a[1].localeCompare(b[1])
+    );
+    
+    // Zapisz aktualną wartość filtru
+    const currentValue = filter.value;
+    
+    // Wypełnij select
+    filter.innerHTML = '<option value="all">Wszyscy podopieczni</option>';
+    sortedClients.forEach(([id, name]) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = name;
+        filter.appendChild(option);
+    });
+    
+    // Przywróć wartość jeśli istniała
+    if (currentValue && Array.from(uniqueClients.keys()).includes(currentValue)) {
+        filter.value = currentValue;
+    }
+}
+
+// Inicjalizacja filtrów
+function initializePaymentFilters() {
+    const statusFilter = document.getElementById('paymentStatusFilter');
+    const clientFilter = document.getElementById('paymentClientFilter');
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => {
+            // Ponowne renderowanie z aktualnymi danymi
+            const paymentsData = window.allPayments || [];
+            renderPaymentsList(paymentsData);
+        });
+    }
+    
+    if (clientFilter) {
+        clientFilter.addEventListener('change', () => {
+            // Ponowne renderowanie z aktualnymi danymi
+            const paymentsData = window.allPayments || [];
+            renderPaymentsList(paymentsData);
+        });
+    }
+}
+
 // Eksporty globalne
 window.openPaymentModal = openPaymentModal;
 window.handlePaymentSubmit = handlePaymentSubmit;
@@ -392,5 +472,14 @@ window.loadPayments = loadPayments;
 window.deletePayment = deletePayment;
 window.editPayment = editPayment;
 window.updatePaymentClientSelect = updatePaymentClientSelect;
+window.updatePaymentClientFilter = updatePaymentClientFilter;
+window.initializePaymentFilters = initializePaymentFilters;
+
+// Inicjalizuj filtry przy ładowaniu
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializePaymentFilters);
+} else {
+    initializePaymentFilters();
+}
 
 console.log('✅ Finances.js loaded');

@@ -19,6 +19,19 @@ async function loadPricing() {
         if (pricingDoc.exists) {
             servicePricing = pricingDoc.data();
             window.servicePricing = servicePricing; // Aktualizuj window.servicePricing
+            
+            // Wypełnij pola w zakładce Usługi (jeśli istnieją)
+            const priceDietaInput = document.getElementById('priceDieta');
+            const pricePlanInput = document.getElementById('pricePlan');
+            const priceProwadzenieInput = document.getElementById('priceProwadzenie');
+            const priceProwadzeniePierwszyInput = document.getElementById('priceProwadzeniePierwszy');
+            const priceWspolpracaInput = document.getElementById('priceWspolpraca');
+            
+            if (priceDietaInput) priceDietaInput.value = servicePricing.dieta || 0;
+            if (pricePlanInput) pricePlanInput.value = servicePricing.plan_treningowy || 0;
+            if (priceProwadzenieInput) priceProwadzenieInput.value = servicePricing.prowadzenie || 0;
+            if (priceProwadzeniePierwszyInput) priceProwadzeniePierwszyInput.value = servicePricing.prowadzenie_pierwszy || 0;
+            if (priceWspolpracaInput) priceWspolpracaInput.value = servicePricing.wspolpraca_prywatna || 0;
         }
     } catch (error) {
         console.error('Error loading pricing:', error);
