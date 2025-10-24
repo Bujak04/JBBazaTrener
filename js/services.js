@@ -584,6 +584,10 @@ function calculateClientStatus(services) {
 function updateServicesTab() {
     updateServiceStats();
     updateServicesHistory();
+    // Załaduj cennik przy otwieraniu zakładki
+    if (typeof loadPricing === 'function') {
+        loadPricing();
+    }
 }
 
 // Inicjalizacja nasłuchiwania na usługi w historii
