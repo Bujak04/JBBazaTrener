@@ -792,7 +792,7 @@ function updateServiceStats() {
                     if (service.type === 'plan_treningowy' && service.status !== 'zakonczony') {
                         planCount++;
                     }
-                    if (service.type === 'prowadzenie') {
+                    if (service.type === 'prowadzenie' && service.status !== 'zakonczony') {
                         if (service.status === 'aktywny') {
                             const today = new Date();
                             const endDate = service.endDate ? service.endDate.toDate() : null;
@@ -802,9 +802,12 @@ function updateServiceStats() {
                                 
                                 if (daysUntilEnd <= 7 && daysUntilEnd > 0) {
                                     expiringCoachingCount++;
-                                } else if (daysUntilEnd > 7) {
+                                } else if (daysUntilEnd > 0) {
                                     activeCoachingCount++;
                                 }
+                            } else {
+                                // Prowadzenie bez daty końca - traktuj jako aktywne
+                                activeCoachingCount++;
                             }
                         } else if (service.status === 'nieoplacony') {
                             unpaidCoachingCount++;
