@@ -583,11 +583,9 @@ function calculateClientStatus(services) {
 // Aktualizacja zakładki Usługi
 function updateServicesTab() {
     updateServiceStats();
+    updateActiveServicesList();
+    updateOtherServicesList();
     updateServicesHistory();
-    // Załaduj cennik przy otwieraniu zakładki
-    if (typeof loadPricing === 'function') {
-        loadPricing();
-    }
 }
 
 // Inicjalizacja nasłuchiwania na usługi w historii
@@ -617,6 +615,163 @@ async function deleteServiceHistory(historyId) {
     } finally {
         showLoading(false);
     }
+}
+
+// Aktualizacja listy aktywnych prowadzeń
+function updateActiveServicesList() {
+    const container = document.getElementById('activeCoachingList');
+    if (!container) return;
+    
+    const activeServices = [];
+    const expiringServices = [];
+    const unpaidServices = [];
+    
+    if (window.allClients) {
+        window.allClients.forEach(client => {
+            if (client.services) {
+                client.services.forEach((service, index) => {
+                    if (service.type === 'prowadzenie') {
+                        const serviceData = {
+                            clientId: client.id,
+                            clientName: `${client.firstName} ${client.lastName}`,
+                            service: service,
+                            serviceIndex: index
+                        };
+                        
+                        if (service.status === 'aktywny' && service.endDate) {
+                            const today = new Date();
+                            const endDate = service.endDate.toDate();
+                            const daysUntilEnd = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                            
+                            if (daysUntilEnd <= 7 && daysUntilEnd > 0) {
+                                expiringServices.push({ ...serviceData, daysUntilEnd });
+                            } else if (daysUntilEnd > 7) {
+                                activeServices.push({ ...serviceData, daysUntilEnd });
+                            }
+                        } else if (service.status === 'nieoplacony') {
+                            unpaidServices.push(serviceData);
+                        }
+                    }
+                });
+            }
+        });
+    }
+    
+    let html = '';
+    
+    if (activeServices.length > 0) {
+        html += '<h4 style="color: var(--success-green); margin-top: 20px;">✅ Aktywne prowadzenia</h4>';
+        activeServices.forEach(item => {
+            html += `
+                <div class="service-item" style="background: var(--card-bg); padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid var(--success-green);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${item.clientName}</strong>
+                            <p style="color: var(--text-gray); margin: 5px 0; font-size: 14px;">
+                                Do końca: ${item.daysUntilEnd} dni (${formatDate(item.service.endDate)})
+                            </p>
+                        </div>
+                        <button onclick="openClientDetails('${item.clientId}')" class="btn-secondary" style="padding: 8px 15px;">Zobacz</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    if (expiringServices.length > 0) {
+        html += '<h4 style="color: var(--warning-yellow); margin-top: 20px;">⚠️ Wygasające prowadzenia</h4>';
+        expiringServices.forEach(item => {
+            html += `
+                <div class="service-item" style="background: var(--card-bg); padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid var(--warning-yellow);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${item.clientName}</strong>
+                            <p style="color: var(--warning-yellow); margin: 5px 0; font-size: 14px;">
+                                ⚠️ Kończy się za ${item.daysUntilEnd} dni! (${formatDate(item.service.endDate)})
+                            </p>
+                        </div>
+                        <button onclick="openClientDetails('${item.clientId}')" class="btn-secondary" style="padding: 8px 15px;">Zobacz</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    if (unpaidServices.length > 0) {
+        html += '<h4 style="color: var(--danger-red); margin-top: 20px;">❌ Nieopłacone prowadzenia</h4>';
+        unpaidServices.forEach(item => {
+            html += `
+                <div class="service-item" style="background: var(--card-bg); padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid var(--danger-red);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${item.clientName}</strong>
+                            <p style="color: var(--danger-red); margin: 5px 0; font-size: 14px;">
+                                💳 Nieopłacone
+                            </p>
+                        </div>
+                        <button onclick="openClientDetails('${item.clientId}')" class="btn-secondary" style="padding: 8px 15px;">Zobacz</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    if (html === '') {
+        html = '<div class="empty-state"><p style="color: var(--text-gray);">Brak aktywnych prowadzeń</p></div>';
+    }
+    
+    container.innerHTML = html;
+}
+
+// Aktualizacja listy innych usług (diety i plany)
+function updateOtherServicesList() {
+    const container = document.getElementById('otherServicesList');
+    if (!container) return;
+    
+    const otherServices = [];
+    
+    if (window.allClients) {
+        window.allClients.forEach(client => {
+            if (client.services) {
+                client.services.forEach((service, index) => {
+                    if ((service.type === 'dieta' || service.type === 'plan_treningowy' || service.type === 'wspolpraca_prywatna') && service.status !== 'zakonczony') {
+                        otherServices.push({
+                            clientId: client.id,
+                            clientName: `${client.firstName} ${client.lastName}`,
+                            service: service,
+                            serviceIndex: index
+                        });
+                    }
+                });
+            }
+        });
+    }
+    
+    if (otherServices.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p style="color: var(--text-gray);">Brak aktywnych diet i planów treningowych</p></div>';
+        return;
+    }
+    
+    let html = '';
+    otherServices.forEach(item => {
+        const icon = item.service.type === 'dieta' ? '🥗' : item.service.type === 'plan_treningowy' ? '💪' : '🤝';
+        const label = getServiceLabel(item.service.type);
+        html += `
+            <div class="service-item" style="background: var(--card-bg); padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid var(--primary-green);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>${item.clientName}</strong>
+                        <p style="color: var(--text-gray); margin: 5px 0; font-size: 14px;">
+                            ${icon} ${label} • ${formatDate(item.service.startDate || item.service.purchaseDate)}
+                        </p>
+                    </div>
+                    <button onclick="openClientDetails('${item.clientId}')" class="btn-secondary" style="padding: 8px 15px;">Zobacz</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
 }
 
 // Aktualizacja statystyk usług
@@ -741,6 +896,8 @@ async function updateServicesHistory() {
 
 // Eksporty globalne
 window.updateServicesTab = updateServicesTab;
+window.updateActiveServicesList = updateActiveServicesList;
+window.updateOtherServicesList = updateOtherServicesList;
 window.initializeServicesListener = initializeServicesListener;
 window.deleteServiceHistory = deleteServiceHistory;
 window.openServiceModal = openServiceModal;
